@@ -1,4 +1,4 @@
-# CMMV MMO Server
+﻿# CMMV MMO Server
 
 This is an Multiplayer server based on the CMMV framework, which automatically generates RPC communication packages and .cpp files for use with Unreal Engine, supporting both C++ and Blueprints. Follow the steps below to set up and start the project.
 
@@ -30,9 +30,9 @@ CLIENT_PATH=C:\Client
 UNREAL_EDITOR_PATH=C:\UE_5.5\Engine
 ```
 
-* *CLIENT_PROJECTNAME:* The name of your Unreal client project.
-* *CLIENT_PATH:* The path to your Unreal client project directory.
-* *UNREAL_EDITOR_PATH:* The path to your Unreal Engine editor.
+* **CLIENT_PROJECTNAME:** The name of your Unreal client project.
+* **CLIENT_PATH:** The path to your Unreal client project directory.
+* **UNREAL_EDITOR_PATH:** The path to your Unreal Engine editor.
 
 ## Step 3: Build and Generate Communication Packages
 
@@ -43,22 +43,38 @@ Once the virtual link and .env file are set up:
 
 ## Features
 
-* *Automatic RPC Generation:* The server generates RPC communication packages automatically based on the contracts you define.
-* *Unreal Integration:* Generates .cpp files for use in Unreal Engine, accessible in both C++ and Blueprints.
-* *Flexible Setup:* Easily link any Unreal project and configure paths using the .env file.
-* *UDP Communication:* Supports UDP communication for high-performance tasks such as movement replication, combat, and collision handling, ensuring fast and efficient updates.
-* *WebSocket Communication:* Uses WebSocket for non-immediate data such as chat, marketplace, and other systems that do not require real-time performance, avoiding interference with UDP packets.
-* *Automated Testing Tools:* Includes a suite of automated testing tools that ensure the integrity of the server before startup, improving reliability and reducing the risk of runtime errors.
-* *High-Performance Binary Communication:* Utilizes ByteBuffer and QueueBuffer for high-performance binary communication, optimizing data transfer between the server and clients.
-* *Packet Encoding:* Provides simple XOR encoding with individual keys per client for basic protection, and elliptic curve cryptography (ECC) combined with AES for secure communication when necessary, ensuring data security where it matters.
+* **Automatic RPC Generation:** The server generates RPC communication packages automatically based on the contracts you define.
+* **Unreal Integration:** Generates .cpp files for use in Unreal Engine, accessible in both C++ and Blueprints.
+* **Flexible Setup:** Easily link any Unreal project and configure paths using the .env file.
+* **UDP Communication:** Supports UDP communication for high-performance tasks such as movement replication, combat, and collision handling, ensuring fast and efficient updates.
+* **WebSocket Communication:** Uses WebSocket for non-immediate data such as chat, marketplace, and other systems that do not require real-time performance, avoiding interference with UDP packets.
+* **Automated Testing Tools:** Includes a suite of automated testing tools that ensure the integrity of the server before startup, improving reliability and reducing the risk of runtime errors.
+* **High-Performance Binary Communication:** Utilizes ByteBuffer and QueueBuffer for high-performance binary communication, optimizing data transfer between the server and clients.
+* **Packet Encoding:** Provides simple XOR encoding with individual keys per client for basic protection, and elliptic curve cryptography (ECC) combined with AES for secure communication when necessary, ensuring data security where it matters.
+
+## Checklist
+
+| Feature                             | Status            | Notes                                                       |
+|------------------------------------|-------------------|-------------------------------------------------------------|
+| RPC                                | 🛠 In Progress     | RPC system is currently under development.                  |
+| C# Packet Creation                 | ✅ Working         | Packet creation in C# is functional and tested.             |
+| C++ Interface for Unreal           | 🛠 In Progress     | Interface creation for Unreal Engine is in progress.        |
+| Testing System                     | ✅ Working         | Automated testing system is functional and operational.     |
+| ByteBuffer and QueueBuffer         | ✅ Working         | High-performance binary communication buffers are working.  |
+| WebSocket                          | ⏳ Not Implemented | WebSocket support has yet to be implemented.                |
+| UDP                                | ⏳ Not Implemented | UDP communication setup is yet to be implemented.           |
+| XOR Encoding                       | ⏳ Not Implemented | XOR encoding system is yet to be implemented.               |
+| ECC and AES256 Encryption          | ⏳ Not Implemented | Encryption using ECC and AES256 needs to be implemented.    |
+| Base Replication                   | ⏳ Not Implemented | Replication system for core game elements is not implemented yet. |
+| JWT Authentication                 | ⏳ Not Implemented | JWT-based authentication needs to be implemented.           |
 
 ## Benchmark 
 
-## Websocket
+### Websocket
 
 * [https://github.com/andrehrferreira/bench-ws](https://github.com/andrehrferreira/bench-ws)
-* *Machine:* linux x64 | 32 vCPUs | 256.6GB Mem
-* *Node:* v20.17.0
+* **Machine:** linux x64 | 32 vCPUs | 256.6GB Mem
+* **Node:** v20.17.0
 Run: Thu Oct 23 2024 21:19:12 GMT+0000 (Coordinated Universal Time)
 
 | (index) | Server           | Avg Messages/sec | % Difference |
