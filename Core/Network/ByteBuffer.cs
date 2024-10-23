@@ -1,24 +1,47 @@
-﻿
+﻿using System.Text;
+using System.Runtime.CompilerServices;
 
-using System.Text;
-
-public struct ByteBuffer
+public class ByteBuffer : IDisposable
 {
     private byte[] buffer;
     private int position;
+    private bool disposed = false;
 
-    public ByteBuffer(byte[] data = null)
+    public ByteBuffer(int initialSize = 0)
     {
-        buffer = data ?? new byte[0];
+        buffer = new byte[initialSize];
         position = 0;
     }
 
+    public ByteBuffer(byte[] data)
+    {
+        buffer = data ?? throw new ArgumentNullException(nameof(data));
+        position = 0;
+    }
+
+    public ByteBuffer(ByteBuffer other)
+    {
+        if (other == null) throw new ArgumentNullException(nameof(other));
+        buffer = new byte[other.buffer.Length];
+        Array.Copy(other.buffer, buffer, other.buffer.Length);
+        position = other.position;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void EnsureCapacity(int requiredBytes)
     {
         int requiredCapacity = position + requiredBytes;
 
         if (requiredCapacity > buffer.Length)
-            Array.Resize(ref buffer, requiredCapacity);
+        {
+            int newSize = Math.Max(buffer.Length * 2, requiredCapacity);
+            Array.Resize(ref buffer, newSize);
+        }
+    }
+
+    public void ResetPosition()
+    {
+        position = 0;
     }
 
     public static ByteBuffer CreateEmptyBuffer()
@@ -28,10 +51,25 @@ public struct ByteBuffer
 
     public byte[] GetBuffer()
     {
-        return buffer;
+        if (disposed)
+            throw new ObjectDisposedException("ByteBuffer");
+
+        byte[] actualBuffer = new byte[position];
+        Array.Copy(buffer, actualBuffer, position);
+        return actualBuffer;
+    }
+
+    public void Dispose()
+    {
+        if (!disposed)
+        {
+            buffer = null;
+            disposed = true;
+        }
     }
 
     // Write methods
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ByteBuffer Write(byte value)
     {
         EnsureCapacity(1);
@@ -39,20 +77,7 @@ public struct ByteBuffer
         return this;
     }
 
-    public ByteBuffer Write<T>(T value)
-    {
-        if (typeof(T) == typeof(byte))
-            Write(Convert.ToByte(value));        
-        else if (typeof(T) == typeof(int))
-            Write(Convert.ToInt32(value));       
-        else if (typeof(T).IsEnum && Enum.GetUnderlyingType(typeof(T)) == typeof(byte))        
-            Write(Convert.ToByte(value));        
-        else        
-            throw new NotSupportedException($"Type '{typeof(T)}' is not supported.");
-        
-        return this;
-    }
-
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ByteBuffer Write(int value)
     {
         EnsureCapacity(4);
@@ -62,6 +87,7 @@ public struct ByteBuffer
         return this;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ByteBuffer Write(string value)
     {
         byte[] utf8Bytes = Encoding.UTF8.GetBytes(value);
@@ -72,33 +98,43 @@ public struct ByteBuffer
         return this;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ByteBuffer Write(bool value)
     {
         return Write((byte)(value ? 1 : 0));
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ByteBuffer Write(float value)
     {
         EnsureCapacity(4);
-        BitConverter.GetBytes(value).CopyTo(buffer, position);
-        position += 4;
+        byte[] bytes = BitConverter.GetBytes(value);
+        Array.Copy(bytes, 0, buffer, position, bytes.Length);
+        position += bytes.Length;
         return this;
     }
 
-    //Read methods
-
+    // Read methods
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T Read<T>()
     {
         if (typeof(T) == typeof(byte))
             return (T)(object)ReadByte();
-        else if (typeof(T) == typeof(int))        
+        else if (typeof(T) == typeof(int))
             return (T)(object)ReadInt();
-        else if (typeof(T).IsEnum && Enum.GetUnderlyingType(typeof(T)) == typeof(byte))        
-            return (T)(object)ReadByte();        
+        else if (typeof(T) == typeof(float))
+            return (T)(object)ReadFloat();
+        else if (typeof(T) == typeof(bool))
+            return (T)(object)ReadBool();
+        else if (typeof(T) == typeof(string))
+            return (T)(object)ReadString();
+        else if (typeof(T).IsEnum && Enum.GetUnderlyingType(typeof(T)) == typeof(byte))
+            return (T)(object)ReadByte();
         else
             throw new NotSupportedException($"Type '{typeof(T)}' is not supported.");
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public byte ReadByte()
     {
         if (position + 1 > buffer.Length)
@@ -107,11 +143,13 @@ public struct ByteBuffer
         return buffer[position++];
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool ReadBool()
     {
         return ReadByte() != 0;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int ReadInt()
     {
         if (position + 4 > buffer.Length)
@@ -122,6 +160,7 @@ public struct ByteBuffer
         return value;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string ReadString()
     {
         int length = ReadInt();
@@ -134,6 +173,7 @@ public struct ByteBuffer
         return value;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public float ReadFloat()
     {
         if (position + 4 > buffer.Length)

@@ -32,6 +32,8 @@ public class ContractTraspiler: AbstractTranspiler
             {
                 writer.WriteLine("// This file was generated automatically, please do not change it.");
                 writer.WriteLine();
+                writer.WriteLine("using System.Runtime.CompilerServices;");
+                writer.WriteLine();
 
                 writer.WriteLine($"public struct {contractName}Packet");
                 writer.WriteLine("{");                
@@ -99,6 +101,8 @@ public class ContractTraspiler: AbstractTranspiler
 
     private static void GenerateWriteMethod(StreamWriter writer, Type contract, FieldInfo[] fields)
     {
+        
+        writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
         writer.WriteLine($"    public static ByteBuffer Serialize({contract.Name} data)");
         writer.WriteLine("    {");
         writer.WriteLine("        var buffer = ByteBuffer.CreateEmptyBuffer();");
@@ -141,6 +145,7 @@ public class ContractTraspiler: AbstractTranspiler
 
     private static void GenerateReadMethod(StreamWriter writer, Type contract, FieldInfo[] fields)
     {
+        writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
         writer.WriteLine($"    public static {contract.Name} Deserialize(ByteBuffer buffer)");
         writer.WriteLine("    {");
         writer.WriteLine($"        var data = new {contract.Name}();");

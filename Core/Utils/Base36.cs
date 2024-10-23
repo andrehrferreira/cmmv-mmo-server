@@ -1,13 +1,41 @@
-﻿
-public struct Base36
+﻿public struct Base36
 {
-    public static int ToInt(string Id)
+    private const string Digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    public static int ToInt(string id)
     {
-        return Convert.ToInt32(Id, 36);
+        if (string.IsNullOrEmpty(id))
+            throw new ArgumentException("The input string cannot be null or empty.");
+
+        int result = 0;
+
+        foreach (char c in id.ToUpper())
+        {
+            int digitValue = Digits.IndexOf(c);
+
+            if (digitValue == -1)
+            {
+                throw new ArgumentException("Invalid Base36 value.");
+            }
+
+            result = result * 36 + digitValue;
+        }
+
+        return result;
     }
 
     public static string ToString(int value)
     {
-        return value.ToString("x").ToUpper();
+        if (value < 0) throw new ArgumentException("Value cannot be negative.");
+
+        string result = string.Empty;
+
+        do
+        {
+            result = Digits[value % 36] + result;
+            value /= 36;
+        } while (value > 0);
+
+        return result;
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using System.Runtime.InteropServices;
 using DotNetEnv;
 
 class Program
@@ -33,9 +32,14 @@ class Program
             if (unrealEditorPath == "")
                 throw new Exception("The UNREAL_EDITOR_PATH variable was not found in the .env file.");
 
+            //System tests
+            var testRunner = new TestUtils();
+            testRunner.RunAllTests();
+
+            //Generate
             ContractTraspiler.Generate();
-            UnrealTraspiler.Generate(clientProjectName);
-            UnrealUtils.RegenerateVSCodes(clientPath, unrealEditorPath, clientProjectName);
+            //UnrealTraspiler.Generate(clientProjectName);
+            //UnrealUtils.RegenerateVSCodes(clientPath, unrealEditorPath, clientProjectName);
         }
         catch (Exception ex)
         {

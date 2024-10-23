@@ -9,7 +9,6 @@
 
   <ItemGroup>
     	<Folder Include="Core\Packets\" />
-    	<Folder Include="Tests\" />
 	<Compile Remove="Shared\**\*.cs" />
   </ItemGroup>
 

@@ -17,8 +17,11 @@ public class Reactive<T>
         get => _value;
         set
         {
-            _value = value;
-            NotifySubscribers(_value);
+            if (!EqualityComparer<T>.Default.Equals(_value, value))
+            {
+                _value = value;
+                NotifySubscribers(_value);
+            }
         }
     }
 
