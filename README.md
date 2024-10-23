@@ -4,9 +4,19 @@ This is an Multiplayer server based on the CMMV framework, which automatically g
 
 ## Prerequisites
 
-* *Unreal Engine 5.3 or higher*
-* *.NET SDK 6.0 or higher*
-* *Visual Studio 2022
+* **Windows 10 or higher**
+* **Unreal Engine 5.3 or higher**
+* **.NET SDK 6.0 or higher**
+* **Visual Studio 2022**
+
+Before setting up the project, ensure you have the following NuGet packages installed:
+
+1. **DotNetEnv**: Used for loading environment variables from a `.env` file.  
+   [Download DotNetEnv](https://www.nuget.org/packages/DotNetEnv)
+
+2. **Microsoft.VisualStudio.Interop**: Required for integration with Visual Studio and automation features.  
+   [Download Microsoft.VisualStudio.Interop](https://www.nuget.org/packages/Microsoft.VisualStudio.Interop)
+
 
 ## Step 1: Create a Virtual Link with the Client Directory
 
