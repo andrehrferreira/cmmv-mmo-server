@@ -1,0 +1,6 @@
+.vs
+.git
+.env
+obj
+bin
+Shared
