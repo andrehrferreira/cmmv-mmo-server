@@ -1,25 +1,26 @@
-/*#pragma once
+#pragma once
 
 #include "CoreMinimal.h"
-#include "Subsystems/GameInstanceSubsystem.h"
 #include "Engine/GameInstance.h"
 #include "ServerSubsystem.generated.h"
 
 UCLASS(DisplayName = "ServerSubsystem")
-class CLIENT_API UServerSubsystem : public UGameInstanceSubsystem 
+class CLIENT_API UServerSubsystem : public UGameInstance
 {
 	GENERATED_BODY()
 
 public:
 
-	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
-	virtual void Deinitialize() override;
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Game Data", meta = (WorldContext = "WorldContextObject"))
+	static UServerSubsystem* GetServerSubsystem(UObject* WorldContextObject);
 
-	UServerSubsystem();
-private:
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FConnected, FString, ClientID);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FDisconnected);
 
-protected:
-	FString Host = "127.0.0.1";
-	int Port = 5000;
+	UPROPERTY(BlueprintAssignable, meta = (DisplayName = "OnConnect", Keywords = ""), Category = "ServerSubsystem")
+	FConnected OnConnect;
 
-}; */
+	UPROPERTY(BlueprintAssignable, meta = (DisplayName = "OnDisconnect", Keywords = ""), Category = "ServerSubsystem")
+	FDisconnected OnDisconnect;
+
+}; 

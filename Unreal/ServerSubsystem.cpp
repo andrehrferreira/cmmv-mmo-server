@@ -1,22 +1,15 @@
-/*
 #include "ServerSubsystem.h"
-#include "Engine/Engine.h"
-#include "GenericPlatform/GenericPlatformMisc.h"
+#include "Kismet/GameplayStatics.h"
 
-UServerSubsystem::UServerSubsystem() :
-	bIsManuallyLaunched(false),
-	bAutoClientTravel(true),
-	bAutoServerClose(true)
+UServerSubsystem* UServerSubsystem::GetServerSubsystem(UObject* WorldContextObject)
 {
+    if (WorldContextObject)
+    {
+        if (UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(WorldContextObject))
+        {
+            return Cast<UServerSubsystem>(GameInstance);
+        }
+    }
 
+    return nullptr;
 }
-
-void UServerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
-{
-	
-}
-
-void UServerSubsystem::Deinitialize()
-{
-
-}*/
