@@ -1,6 +1,12 @@
-﻿public class QueueBuffer
+﻿public struct BufferDataRef
 {
-    public static Dictionary<string, List<ByteBuffer>> Queues = new Dictionary<string, List<ByteBuffer>>();
+    public ServerPacket PacketType;
+    public ByteBuffer Data;
+}
+
+public class QueueBuffer
+{
+    public static Dictionary<string, List<BufferDataRef>> Queues = new Dictionary<string, List<BufferDataRef>>();
     public static Dictionary<string, Socket> Sockets = new Dictionary<string, Socket>();
     public static int MaxBufferSize = 512 * 1024;
     public static byte EndOfPacketByte = 0xFE;
@@ -22,14 +28,19 @@
         return Sockets.ContainsKey(id) ? Sockets[id] : null;
     }
 
-    public static void AddBuffer(string socketId, ByteBuffer buffer)
+    public static void AddBuffer(ServerPacket packetType, string socketId, ByteBuffer buffer)
     {
         if (!Queues.ContainsKey(socketId))
-            Queues[socketId] = new List<ByteBuffer>();
+            Queues[socketId] = new List<BufferDataRef>();
 
         if (!IsDuplicatePacket(socketId, buffer))
         {
-            Queues[socketId].Add(buffer);
+            Queues[socketId].Add(new BufferDataRef
+            {
+                PacketType = packetType,
+                Data = buffer
+            }) ; 
+
             CheckAndSend(socketId);
         }
     }
@@ -39,7 +50,7 @@
         if (Queues.ContainsKey(socketId))
         {
             var buffers = Queues[socketId];
-            int totalSize = buffers.Sum(buffer => buffer.GetBuffer().Length);
+            int totalSize = buffers.Sum(buffer => buffer.Data.GetBuffer().Length);
 
             if (totalSize >= MaxBufferSize)
             {
@@ -57,20 +68,23 @@
             {
                 var combinedBuffer = CombineBuffers(buffers);
                 var finalBuffer = combinedBuffer.GetBuffer();
-                GetSocket(socketId)?.Send(finalBuffer); // Replace `Send` with actual socket send method
+                GetSocket(socketId)?.Send(finalBuffer);
                 Queues[socketId].Clear();
             }
             else
             {
-                GetSocket(socketId)?.Send(buffers[0].GetBuffer()); // Replace `Send` with actual socket send method
+                GetSocket(socketId)?.Send(buffers[0].PacketType, buffers[0].Data.GetBuffer()); 
                 Queues[socketId].Clear();
             }
         }
     }
 
-    public static ByteBuffer CombineBuffers(List<ByteBuffer> buffers)
+    public static ByteBuffer CombineBuffers(List<BufferDataRef> buffers)
     {
-        int totalLength = buffers.Sum(buffer => buffer.GetBuffer().Length) + (buffers.Count * EndRepeatByte) + 1;
+        int totalLength = buffers.Sum(buffer => buffer.Data.GetBuffer().Length)
+                          + (buffers.Count * (EndRepeatByte + 1)) 
+                          + 1;  
+
         byte[] combinedArray = new byte[totalLength];
         int position = 0;
 
@@ -78,7 +92,9 @@
 
         foreach (var buffer in buffers)
         {
-            var buf = buffer.GetBuffer();
+            combinedArray[position++] = (byte)buffer.PacketType;
+
+            var buf = buffer.Data.GetBuffer();
             Array.Copy(buf, 0, combinedArray, position, buf.Length);
             position += buf.Length;
 
@@ -86,12 +102,11 @@
                 combinedArray[position++] = EndOfPacketByte;            
         }
 
-        if (position != totalLength)        
+        if (position != totalLength)
             throw new InvalidOperationException("Combined buffer size does not match the expected size.");
 
         return new ByteBuffer(combinedArray);
     }
-
 
     public static bool IsDuplicatePacket(string socketId, ByteBuffer buffer)
     {
@@ -99,7 +114,7 @@
             return false;
 
         var recentPackets = Queues[socketId];
-        var indexBuffer = recentPackets.Select(b => b.ToHex());
+        var indexBuffer = recentPackets.Select(b => b.Data.ToHex());
         var bufferHex = buffer.ToHex();
         return indexBuffer.Contains(bufferHex);
     }
@@ -113,10 +128,5 @@
                 SendBuffers(kvp.Key);
             }                
         }
-    }
-
-    public static void StartTicking(int intervalMilliseconds)
-    {
-        Timer timer = new Timer(Tick, null, 0, intervalMilliseconds);
     }
 }

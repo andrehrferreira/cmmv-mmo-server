@@ -17,16 +17,14 @@ public partial class Entity
     //Network
     public void Reply(ServerPacket packetType, ByteBuffer data, bool Queue = false)
     {
-        data.SetType((byte)packetType);
-
         AreaOfInterest.ForEach((entity) =>
         {
             if(entity.Socket != null)
             {
                 if (Queue)
-                    QueueBuffer.AddBuffer(entity.Socket.Id, data);
+                    QueueBuffer.AddBuffer(packetType, entity.Socket.Id, data);
                 else
-                    entity.Socket.Send(data.GetBuffer());
+                    entity.Socket.Send(packetType, data.GetBuffer());
             }
         });
     }

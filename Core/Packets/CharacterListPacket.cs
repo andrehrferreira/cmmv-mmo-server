@@ -2,26 +2,24 @@
 
 using System.Runtime.CompilerServices;
 
-public struct PingPacket
+public struct CharacterListPacket
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ByteBuffer Serialize(PingDTO data)
+    public static ByteBuffer Serialize(CharacterListDTO data)
     {
         var buffer = ByteBuffer.CreateEmptyBuffer();
-        buffer.Write(data.Timestamp);
         return buffer;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PingDTO Deserialize(ByteBuffer buffer)
+    public static CharacterListDTO Deserialize(ByteBuffer buffer)
     {
-        var data = new PingDTO();
-        data.Timestamp = buffer.ReadInt();
+        var data = new CharacterListDTO();
         return data;
     }
 }
 
 public partial class Server
 {
-    public static NetworkEvents<PingDTO> OnPing = new NetworkEvents<PingDTO>();
+    public static NetworkEvents<CharacterListDTO> OnCharacterList = new NetworkEvents<CharacterListDTO>();
 }

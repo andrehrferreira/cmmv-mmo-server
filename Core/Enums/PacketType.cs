@@ -12,3 +12,9 @@ public enum PacketAction: byte
     AreaOfInterest = 1,
     Broadcast = 2
 }
+
+public enum PacketSendType : byte
+{
+    Self = 0,
+    ToEntity = 1
+}

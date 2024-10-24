@@ -10,6 +10,7 @@ class CLIENT_API UBase36 : public UBlueprintFunctionLibrary
     GENERATED_BODY()
 
 public:
+
     UFUNCTION(BlueprintCallable, Category = "Base36")
     static int32 Base36ToInt(const FString& Base36String);
 

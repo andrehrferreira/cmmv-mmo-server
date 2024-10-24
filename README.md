@@ -62,6 +62,30 @@ Once the virtual link and .env file are set up:
 * **High-Performance Binary Communication:** Utilizes ByteBuffer and QueueBuffer for high-performance binary communication, optimizing data transfer between the server and clients.
 * **Packet Encoding:** Provides simple XOR encoding with individual keys per client for basic protection, and elliptic curve cryptography (ECC) combined with AES for secure communication when necessary, ensuring data security where it matters.
 
+## Code Generation
+
+When running the server in debug mode, the system automatically generates necessary packet files and supporting components required for the server's functionality. Here's how the code generation process works:
+
+1. Intermediate Directory Cleanup: The server deletes the Intermediate directory of the Unreal client project. This ensures that old, cached files do not interfere with the newly generated scripts.
+2. Visual Studio Project Regeneration:
+	* The Visual Studio project file for the client will be regenerated to include the newly created scripts and assets.
+	* If Visual Studio is open during this process, you may need to recompile the project. If prompted to reload the updated files, confirm the action. If the prompt does not appear, try the following:
+		* Open and close the solution file, which will force the project to reload.
+		* Alternatively, go to the Recent Projects tab and re-open the project to refresh the loaded scripts.
+3. Unreal Header File Generation:
+	* Unreal Engine will generate the necessary header files if the editor is running.
+	* If Unreal Editor or Visual Studio is already open during code generation, a recompile may be necessary to ensure all updates are integrated.
+	* If the Unreal Editor is open, you can alternatively refresh the Live Coding system, which will load the newly created files and make enums, functions, and delegates available without a full rebuild.
+
+### Summary of Code Generation Steps
+
+* The server deletes the client's Intermediate directory.
+* Regenerates the Visual Studio project and integrates the newly generated scripts.
+* Ensures that all required files, including headers and ``.cpp`` files, are generated and made accessible in Unreal Engine.
+* Manual actions:
+	* For ``Visual Studio``: Open and close the solution or use the recent projects tab if the project does not auto-refresh.
+	* For ``Unreal Engine``: Recompile the project or refresh Live Coding to ensure all updates are loaded.
+
 ## Checklist
 
 | Feature                             | Status            | Notes                                                       |

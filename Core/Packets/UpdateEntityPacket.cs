@@ -5,10 +5,10 @@ using System.Runtime.CompilerServices;
 public struct UpdateEntityPacket
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ByteBuffer Serialize(UpdateEntity data)
+    public static ByteBuffer Serialize(UpdateEntityDTO data)
     {
         var buffer = ByteBuffer.CreateEmptyBuffer();
-        buffer.Write(data.Id);
+        buffer.Write(Base36.ToInt(data.Id));
         buffer.Write(data.States);
         buffer.Write(data.Buffs);
         buffer.Write(data.Position);
@@ -17,15 +17,23 @@ public struct UpdateEntityPacket
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static UpdateEntity Deserialize(ByteBuffer buffer)
+    public static UpdateEntityDTO Deserialize(ByteBuffer buffer)
     {
-        var data = new UpdateEntity();
-        data.Id = buffer.ReadInt();
+        var data = new UpdateEntityDTO();
+        data.Id = buffer.ReadId();
         data.States = buffer.ReadInt();
         data.Buffs = buffer.ReadInt();
         data.Position = buffer.ReadVector3();
         data.Life = buffer.ReadInt();
         return data;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void Send(Entity owner, UpdateEntityDTO data, Entity entity)
+    {
+        var buffer = Serialize(data);
+        QueueBuffer.AddBuffer(ServerPacket.UpdateEntity, entity.Socket.Id, buffer);
+    }
+
 }
 

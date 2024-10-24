@@ -28,7 +28,7 @@ public class ContractTraspiler: AbstractTranspiler
             var attribute = contract.GetCustomAttribute<ContractAttribute>();
             var contractName = contract.Name;
 
-            string filePath = Path.Combine(baseDirectoryPath, $"{contractName}Packet.cs");
+            string filePath = Path.Combine(baseDirectoryPath, $"{contractName.Replace("DTO", "")}Packet.cs");
 
             using (var writer = new StreamWriter(filePath))
             {
@@ -43,12 +43,15 @@ public class ContractTraspiler: AbstractTranspiler
                 writer.WriteLine();
                 writer.WriteLine("using System.Runtime.CompilerServices;");
                 writer.WriteLine();
-                writer.WriteLine($"public struct {contractName}Packet");
+                writer.WriteLine($"public struct {contractName.Replace("DTO", "")}Packet");
                 writer.WriteLine("{");                
 
                 GenerateWriteMethod(writer, contract, fields);
                 GenerateReadMethod(writer, contract, fields);
-               
+
+                if(attribute.Type == PacketType.Server || attribute.Type == PacketType.Multiplex)
+                    GenerateSendFunction(writer, contract, fields, attribute);
+
                 writer.WriteLine("}");
                 writer.WriteLine();
 
@@ -83,14 +86,14 @@ public class ContractTraspiler: AbstractTranspiler
             for (int i = 0; i < values.Count; i++)
             {
                 string value = values[i];
-                writer.WriteLine($"    {value} = {pointer},");
+                writer.WriteLine($"    {value.Replace("DTO", "")} = {pointer},");
                 pointer++;
             }
 
             for (int i = 0; i < valuesMultiplex.Count; i++)
             {
                 string value = valuesMultiplex[i];
-                writer.WriteLine($"    {value} = {pointer},");
+                writer.WriteLine($"    {value.Replace("DTO", "")} = {pointer},");
                 pointer++;
             }
 
@@ -127,6 +130,9 @@ public class ContractTraspiler: AbstractTranspiler
                     case "boolean":
                     case "vector3":
                         writer.WriteLine($"        buffer.Write(data.{fieldName});");
+                        break;
+                    case "id":
+                        writer.WriteLine($"        buffer.Write(Base36.ToInt(data.{fieldName}));");
                         break;
                     case "decimal":
                         writer.WriteLine($"        buffer.Write((float)data.{fieldName});");
@@ -182,6 +188,9 @@ public class ContractTraspiler: AbstractTranspiler
                     case "vector3":
                         writer.WriteLine($"        data.{fieldName} = buffer.ReadVector3();");
                         break;
+                    case "id":
+                        writer.WriteLine($"        data.{fieldName} = buffer.ReadId();");
+                        break;
                     case "decimal":
                         writer.WriteLine($"        data.{fieldName} = (decimal)buffer.GetFloat();");
                         break;
@@ -200,7 +209,7 @@ public class ContractTraspiler: AbstractTranspiler
     {
         writer.WriteLine("public partial class Server");
         writer.WriteLine("{");
-        writer.WriteLine($"    public static NetworkEvents<{contract.Name}> On{contract.Name} = new NetworkEvents<{contract.Name}>();");
+        writer.WriteLine($"    public static NetworkEvents<{contract.Name}> On{contract.Name.Replace("DTO", "")} = new NetworkEvents<{contract.Name}>();");
 
         if (attribute.Action == PacketAction.AreaOfInterest && attribute.Type == PacketType.Multiplex)
             GenerateAreaOfInterestReply(writer, contract, attribute);
@@ -211,11 +220,56 @@ public class ContractTraspiler: AbstractTranspiler
     private static void GenerateAreaOfInterestReply(StreamWriter writer, Type contract, ContractAttribute attribute)
     {
         writer.WriteLine();
-        writer.WriteLine($"    [Subscribe(ClientPacket.{contract})]");
-        writer.WriteLine($"    public static void On{contract}Handler({contract} data, Socket socket)");
+        writer.WriteLine($"    [Subscribe(ClientPacket.{contract.Name.Replace("DTO", "")})]");
+        writer.WriteLine($"    public static void On{contract.Name.Replace("DTO", "")}Handler({contract} data, Socket socket)");
         writer.WriteLine("    {");
-        writer.WriteLine($"        var packet = {contract}Packet.Serialize(data);");
-        writer.WriteLine($"        socket.Entity.Reply(ServerPacket.{contract}, packet, {attribute.Queue.ToString().ToLower()});");
+        writer.WriteLine($"        var packet = {contract.Name.Replace("DTO", "")}Packet.Serialize(data);");
+        writer.WriteLine($"        socket.Entity.Reply(ServerPacket.{contract.Name.Replace("DTO", "")}, packet, {attribute.Queue.ToString().ToLower()});");
         writer.WriteLine("    }");
     }
+
+    private static void GenerateSendFunction(StreamWriter writer, Type contract, FieldInfo[] fields, ContractAttribute attribute)
+    {
+        var contractName = contract.Name;
+
+        writer.WriteLine();
+        writer.WriteLine($"    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+        writer.WriteLine($"    public static void Send(Entity owner, {contractName} data{(attribute.SendType == PacketSendType.ToEntity ? ", Entity entity" : "")})");
+        writer.WriteLine("    {");
+        writer.WriteLine("        var buffer = Serialize(data);");
+
+        if (attribute.Action == PacketAction.AreaOfInterest)
+        {
+            writer.WriteLine($"        owner.Reply(ServerPacket.{contractName.Replace("DTO", "")}, buffer, {attribute.Queue.ToString().ToLower()});");
+        }
+        else
+        {
+            if (attribute.Queue)
+            {
+                if (attribute.SendType == PacketSendType.Self)
+                {
+                    writer.WriteLine($"        QueueBuffer.AddBuffer(ServerPacket.{contractName.Replace("DTO", "")}, owner.Socket.Id, buffer);");
+                }
+                else if (attribute.SendType == PacketSendType.ToEntity)
+                {
+                    writer.WriteLine($"        QueueBuffer.AddBuffer(ServerPacket.{contractName.Replace("DTO", "")}, entity.Socket.Id, buffer);");
+                }
+            }
+            else
+            {
+                if (attribute.SendType == PacketSendType.Self)
+                {
+                    writer.WriteLine($"        owner.Socket.Send(ServerPacket.{contractName.Replace("DTO", "")}, buffer);");
+                }
+                else if (attribute.SendType == PacketSendType.ToEntity)
+                {
+                    writer.WriteLine($"        entity.Socket.Send(ServerPacket.{contractName.Replace("DTO", "")}, buffer);");
+                }
+            }
+        }
+
+        writer.WriteLine("    }");
+        writer.WriteLine();
+    }
+
 }

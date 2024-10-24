@@ -2,29 +2,29 @@
 
 using System.Runtime.CompilerServices;
 
-public struct RemoveEntityPacket
+public struct CloseContainerPacket
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ByteBuffer Serialize(RemoveEntityDTO data)
+    public static ByteBuffer Serialize(CloseContainerDTO data)
     {
         var buffer = ByteBuffer.CreateEmptyBuffer();
-        buffer.Write(Base36.ToInt(data.Id));
+        buffer.Write(data.ContainerType);
         return buffer;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RemoveEntityDTO Deserialize(ByteBuffer buffer)
+    public static CloseContainerDTO Deserialize(ByteBuffer buffer)
     {
-        var data = new RemoveEntityDTO();
-        data.Id = buffer.ReadId();
+        var data = new CloseContainerDTO();
+        data.ContainerType = buffer.ReadByte();
         return data;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Send(Entity owner, RemoveEntityDTO data)
+    public static void Send(Entity owner, CloseContainerDTO data)
     {
         var buffer = Serialize(data);
-        owner.Reply(ServerPacket.RemoveEntity, buffer, true);
+        owner.Socket.Send(ServerPacket.CloseContainer, buffer);
     }
 
 }

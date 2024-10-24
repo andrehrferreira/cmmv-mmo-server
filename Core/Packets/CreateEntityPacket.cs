@@ -5,10 +5,10 @@ using System.Runtime.CompilerServices;
 public struct CreateEntityPacket
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ByteBuffer Serialize(CreateEntity data)
+    public static ByteBuffer Serialize(CreateEntityDTO data)
     {
         var buffer = ByteBuffer.CreateEmptyBuffer();
-        buffer.Write(data.Id);
+        buffer.Write(Base36.ToInt(data.Id));
         buffer.Write(data.Name);
         buffer.Write(data.Visual);
         buffer.Write(data.States);
@@ -22,10 +22,10 @@ public struct CreateEntityPacket
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static CreateEntity Deserialize(ByteBuffer buffer)
+    public static CreateEntityDTO Deserialize(ByteBuffer buffer)
     {
-        var data = new CreateEntity();
-        data.Id = buffer.ReadInt();
+        var data = new CreateEntityDTO();
+        data.Id = buffer.ReadId();
         data.Name = buffer.ReadString();
         data.Visual = buffer.ReadString();
         data.States = buffer.ReadInt();
@@ -37,5 +37,13 @@ public struct CreateEntityPacket
         data.Guild = buffer.ReadString();
         return data;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void Send(Entity owner, CreateEntityDTO data, Entity entity)
+    {
+        var buffer = Serialize(data);
+        QueueBuffer.AddBuffer(ServerPacket.CreateEntity, entity.Socket.Id, buffer);
+    }
+
 }
 

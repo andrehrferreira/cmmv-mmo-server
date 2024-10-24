@@ -5,30 +5,38 @@ using System.Runtime.CompilerServices;
 public struct PlayMontagePacket
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ByteBuffer Serialize(PlayMontage data)
+    public static ByteBuffer Serialize(PlayMontageDTO data)
     {
         var buffer = ByteBuffer.CreateEmptyBuffer();
-        buffer.Write(data.Id);
+        buffer.Write(Base36.ToInt(data.Id));
         buffer.Write(data.Index);
         return buffer;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PlayMontage Deserialize(ByteBuffer buffer)
+    public static PlayMontageDTO Deserialize(ByteBuffer buffer)
     {
-        var data = new PlayMontage();
-        data.Id = buffer.ReadInt();
+        var data = new PlayMontageDTO();
+        data.Id = buffer.ReadId();
         data.Index = buffer.ReadInt();
         return data;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void Send(Entity owner, PlayMontageDTO data)
+    {
+        var buffer = Serialize(data);
+        owner.Reply(ServerPacket.PlayMontage, buffer, true);
+    }
+
 }
 
 public partial class Server
 {
-    public static NetworkEvents<PlayMontage> OnPlayMontage = new NetworkEvents<PlayMontage>();
+    public static NetworkEvents<PlayMontageDTO> OnPlayMontage = new NetworkEvents<PlayMontageDTO>();
 
     [Subscribe(ClientPacket.PlayMontage)]
-    public static void OnPlayMontageHandler(PlayMontage data, Socket socket)
+    public static void OnPlayMontageHandler(PlayMontageDTO data, Socket socket)
     {
         var packet = PlayMontagePacket.Serialize(data);
         socket.Entity.Reply(ServerPacket.PlayMontage, packet, true);

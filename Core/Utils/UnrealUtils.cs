@@ -10,6 +10,21 @@ public class UnrealUtils
         try
         {
             Console.WriteLine();
+            Console.WriteLine("Cleaning Intermediate directory...");
+
+            string intermediatePath = Path.Combine(clientPath, "Intermediate");
+
+            if (Directory.Exists(intermediatePath))
+            {
+                Directory.Delete(intermediatePath, true);
+                Console.WriteLine("Intermediate directory cleaned successfully.");
+            }
+            else
+            {
+                Console.WriteLine("Intermediate directory does not exist or was already removed.");
+            }
+
+            Console.WriteLine();
             Console.WriteLine("Regeneration of client Visual Studio files...");
 
             string dotnetExe = Path.Combine("C:\\Program Files\\dotnet", "dotnet.exe");

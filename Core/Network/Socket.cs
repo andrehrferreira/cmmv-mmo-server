@@ -4,9 +4,14 @@
 
     public Entity Entity;
 
-    public void Send(ByteBuffer data)
+    public void Send(ServerPacket packetType, ByteBuffer data)
     {
-        Send(data.GetBuffer());
+        Send(packetType, data.GetBuffer());
+    }
+
+    public void Send(ServerPacket packetType, byte[] data)
+    {
+
     }
 
     public void Send(byte[] data)

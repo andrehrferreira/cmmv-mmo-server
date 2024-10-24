@@ -231,4 +231,11 @@ public class ByteBuffer
         float z = (float)ReadInt();
         return new Vector3(x, y, z);
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public string ReadId()
+    {
+        int id = ReadInt();
+        return Base36.ToString(id);
+    }
 }

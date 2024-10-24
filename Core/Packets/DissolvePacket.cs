@@ -2,10 +2,10 @@
 
 using System.Runtime.CompilerServices;
 
-public struct RemoveEntityPacket
+public struct DissolvePacket
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ByteBuffer Serialize(RemoveEntityDTO data)
+    public static ByteBuffer Serialize(DissolveDTO data)
     {
         var buffer = ByteBuffer.CreateEmptyBuffer();
         buffer.Write(Base36.ToInt(data.Id));
@@ -13,18 +13,18 @@ public struct RemoveEntityPacket
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RemoveEntityDTO Deserialize(ByteBuffer buffer)
+    public static DissolveDTO Deserialize(ByteBuffer buffer)
     {
-        var data = new RemoveEntityDTO();
+        var data = new DissolveDTO();
         data.Id = buffer.ReadId();
         return data;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Send(Entity owner, RemoveEntityDTO data)
+    public static void Send(Entity owner, DissolveDTO data)
     {
         var buffer = Serialize(data);
-        owner.Reply(ServerPacket.RemoveEntity, buffer, true);
+        owner.Reply(ServerPacket.Dissolve, buffer, true);
     }
 
 }
