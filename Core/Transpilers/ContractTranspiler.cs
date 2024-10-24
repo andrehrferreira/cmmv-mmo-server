@@ -1,4 +1,6 @@
-﻿using System.Reflection;
+﻿using DotNetEnv;
+using System;
+using System.Reflection;
 
 public class ContractTraspiler: AbstractTranspiler
 {
@@ -30,33 +32,19 @@ public class ContractTraspiler: AbstractTranspiler
 
             using (var writer = new StreamWriter(filePath))
             {
+                switch (attribute?.Type)
+                {
+                    case PacketType.Client: clientPackets.Add(contract.Name); break;
+                    case PacketType.Server: serverPackets.Add(contract.Name); break;
+                    case PacketType.Multiplex: multiplexPackets.Add(contract.Name); break;
+                }
+
                 writer.WriteLine("// This file was generated automatically, please do not change it.");
                 writer.WriteLine();
                 writer.WriteLine("using System.Runtime.CompilerServices;");
                 writer.WriteLine();
-
                 writer.WriteLine($"public struct {contractName}Packet");
                 writer.WriteLine("{");                
-
-                switch (attribute?.Type)
-                {
-                    case PacketType.Client: 
-                        writer.WriteLine($"    public ClientPacket Type = ClientPacket.{contractName};");
-                        clientPackets.Add(contract.Name);
-                        break;
-                    case PacketType.Server: 
-                        writer.WriteLine($"    public ServerPacket Type = ServerPacket.{contractName};");
-                        serverPackets.Add(contract.Name);
-                        break;
-                    case PacketType.Multiplex: //Client / Server
-                        writer.WriteLine($"    public MultiplexPacket Type = MultiplexPacket.{contractName};");
-                        multiplexPackets.Add(contract.Name);
-                        break;
-                }
-
-                writer.WriteLine("");
-                writer.WriteLine($"    public {contractName}Packet() {{ }}");
-                writer.WriteLine("");
 
                 GenerateWriteMethod(writer, contract, fields);
                 GenerateReadMethod(writer, contract, fields);
@@ -65,16 +53,15 @@ public class ContractTraspiler: AbstractTranspiler
                 writer.WriteLine();
 
                 if(attribute?.Type == PacketType.Client || attribute?.Type == PacketType.Multiplex)
-                    GenerateEvent(writer, contract);
+                    GenerateEvent(writer, contract, attribute);
             }
         }
 
-        GenerateEnum("ClientPacket", clientPackets, networkDirectoryPath);
-        GenerateEnum("ServerPacket", serverPackets, networkDirectoryPath);
-        GenerateEnum("MultiplexPacket", multiplexPackets, networkDirectoryPath);
+        GenerateEnum("ClientPacket", clientPackets, networkDirectoryPath, multiplexPackets);
+        GenerateEnum("ServerPacket", serverPackets, networkDirectoryPath, multiplexPackets);
     }
 
-    private static void GenerateEnum(string enumName, List<string> values, string directoryPath)
+    private static void GenerateEnum(string enumName, List<string> values, string directoryPath, List<string> valuesMultiplex)
     {
         string filePath = Path.Combine(directoryPath, $"{enumName}.cs");
 
@@ -85,14 +72,26 @@ public class ContractTraspiler: AbstractTranspiler
             writer.WriteLine($"public enum {enumName}");
             writer.WriteLine("{");
 
+            int pointer = 0;
+
+            if (enumName == "ServerPacket")
+            {
+                pointer = 1;
+                writer.WriteLine($"    Queue = 0,");
+            }
+            
             for (int i = 0; i < values.Count; i++)
             {
                 string value = values[i];
-                
-                if (i == values.Count - 1)
-                    writer.WriteLine($"    {value} = {i}");
-                else
-                    writer.WriteLine($"    {value} = {i},");
+                writer.WriteLine($"    {value} = {pointer},");
+                pointer++;
+            }
+
+            for (int i = 0; i < valuesMultiplex.Count; i++)
+            {
+                string value = valuesMultiplex[i];
+                writer.WriteLine($"    {value} = {pointer},");
+                pointer++;
             }
 
             writer.WriteLine("}");
@@ -126,6 +125,7 @@ public class ContractTraspiler: AbstractTranspiler
                     case "float":
                     case "bool":
                     case "boolean":
+                    case "vector3":
                         writer.WriteLine($"        buffer.Write(data.{fieldName});");
                         break;
                     case "decimal":
@@ -179,6 +179,9 @@ public class ContractTraspiler: AbstractTranspiler
                     case "boolean":
                         writer.WriteLine($"        data.{fieldName} = buffer.ReadBool();");
                         break;
+                    case "vector3":
+                        writer.WriteLine($"        data.{fieldName} = buffer.ReadVector3();");
+                        break;
                     case "decimal":
                         writer.WriteLine($"        data.{fieldName} = (decimal)buffer.GetFloat();");
                         break;
@@ -193,11 +196,26 @@ public class ContractTraspiler: AbstractTranspiler
         writer.WriteLine("    }");
     }
 
-    private static void GenerateEvent(StreamWriter writer, Type contract)
+    private static void GenerateEvent(StreamWriter writer, Type contract, ContractAttribute attribute)
     {
         writer.WriteLine("public partial class Server");
         writer.WriteLine("{");
         writer.WriteLine($"    public static NetworkEvents<{contract.Name}> On{contract.Name} = new NetworkEvents<{contract.Name}>();");
+
+        if (attribute.Action == PacketAction.AreaOfInterest && attribute.Type == PacketType.Multiplex)
+            GenerateAreaOfInterestReply(writer, contract, attribute);
+
         writer.WriteLine("}");
+    }
+
+    private static void GenerateAreaOfInterestReply(StreamWriter writer, Type contract, ContractAttribute attribute)
+    {
+        writer.WriteLine();
+        writer.WriteLine($"    [Subscribe(ClientPacket.{contract})]");
+        writer.WriteLine($"    public static void On{contract}Handler({contract} data, Socket socket)");
+        writer.WriteLine("    {");
+        writer.WriteLine($"        var packet = {contract}Packet.Serialize(data);");
+        writer.WriteLine($"        socket.Entity.Reply(ServerPacket.{contract}, packet, {attribute.Queue.ToString().ToLower()});");
+        writer.WriteLine("    }");
     }
 }

@@ -1,71 +1,99 @@
 ﻿using System.Text;
 using System.Runtime.CompilerServices;
 
-public class ByteBuffer : IDisposable
+public class ByteBuffer
 {
-    private byte[] buffer;
-    private int position;
-    private bool disposed = false;
+    private byte[] Buffer;
+    public int Position;
+    private bool Disposed = false;
 
     public ByteBuffer(int initialSize = 0)
     {
-        buffer = new byte[initialSize];
-        position = 0;
+        Buffer = new byte[initialSize];
+        Position = 0;
     }
 
     public ByteBuffer(byte[] data)
     {
-        buffer = data ?? throw new ArgumentNullException(nameof(data));
-        position = 0;
+        Buffer = data ?? throw new ArgumentNullException(nameof(data));
+        Position = 0;
     }
 
     public ByteBuffer(ByteBuffer other)
     {
-        if (other == null) throw new ArgumentNullException(nameof(other));
-        buffer = new byte[other.buffer.Length];
-        Array.Copy(other.buffer, buffer, other.buffer.Length);
-        position = other.position;
+        //if (other == null) throw new ArgumentNullException(nameof(other));
+        Buffer = new byte[other.Buffer.Length];
+        Array.Copy(other.Buffer, Buffer, other.Buffer.Length);
+        Position = other.Position;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void SetType(byte type)
+    {
+        EnsureCapacity(1);
+
+        if (Position > 0)
+            Array.Copy(Buffer, 0, Buffer, 1, Position);
+
+        Buffer[0] = type;
+        Position++;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void EnsureCapacity(int requiredBytes)
     {
-        int requiredCapacity = position + requiredBytes;
+        int requiredCapacity = Position + requiredBytes;
 
-        if (requiredCapacity > buffer.Length)
+        if (requiredCapacity > Buffer.Length)
         {
-            int newSize = Math.Max(buffer.Length * 2, requiredCapacity);
-            Array.Resize(ref buffer, newSize);
+            int newSize = Math.Max(Buffer.Length * 2, requiredCapacity);
+            Array.Resize(ref Buffer, newSize);
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void ResetPosition()
     {
-        position = 0;
+        Position = 0;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ByteBuffer CreateEmptyBuffer()
     {
         return new ByteBuffer();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public byte[] GetBuffer()
     {
-        if (disposed)
+        if (Disposed)
             throw new ObjectDisposedException("ByteBuffer");
 
-        byte[] actualBuffer = new byte[position];
-        Array.Copy(buffer, actualBuffer, position);
-        return actualBuffer;
+        return Buffer;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Dispose()
     {
-        if (!disposed)
+        if (!Disposed)
         {
-            buffer = null;
-            disposed = true;
+            Buffer = null;
+            Disposed = true;
         }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public string ToHex()
+    {
+        if (Disposed)
+            throw new ObjectDisposedException("ByteBuffer");
+
+        uint hash = 0;
+
+        for (int i = 0; i < Position; i++)        
+            hash = (hash << 5) + hash + Buffer[i]; 
+        
+        return hash.ToString("X8");
     }
 
     // Write methods
@@ -73,7 +101,7 @@ public class ByteBuffer : IDisposable
     public ByteBuffer Write(byte value)
     {
         EnsureCapacity(1);
-        buffer[position++] = value;
+        Buffer[Position++] = value;
         return this;
     }
 
@@ -82,8 +110,8 @@ public class ByteBuffer : IDisposable
     {
         EnsureCapacity(4);
         byte[] bytes = BitConverter.GetBytes(value);
-        Array.Copy(bytes, 0, buffer, position, bytes.Length);
-        position += bytes.Length;
+        Array.Copy(bytes, 0, Buffer, Position, bytes.Length);
+        Position += bytes.Length;
         return this;
     }
 
@@ -93,8 +121,8 @@ public class ByteBuffer : IDisposable
         byte[] utf8Bytes = Encoding.UTF8.GetBytes(value);
         Write(utf8Bytes.Length);
         EnsureCapacity(utf8Bytes.Length);
-        Array.Copy(utf8Bytes, 0, buffer, position, utf8Bytes.Length);
-        position += utf8Bytes.Length;
+        Array.Copy(utf8Bytes, 0, Buffer, Position, utf8Bytes.Length);
+        Position += utf8Bytes.Length;
         return this;
     }
 
@@ -109,8 +137,17 @@ public class ByteBuffer : IDisposable
     {
         EnsureCapacity(4);
         byte[] bytes = BitConverter.GetBytes(value);
-        Array.Copy(bytes, 0, buffer, position, bytes.Length);
-        position += bytes.Length;
+        Array.Copy(bytes, 0, Buffer, Position, bytes.Length);
+        Position += bytes.Length;
+        return this;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ByteBuffer Write(Vector3 value)
+    {
+        Write((int)value.X);
+        Write((int)value.Y);
+        Write((int)value.Z);
         return this;
     }
 
@@ -128,6 +165,8 @@ public class ByteBuffer : IDisposable
             return (T)(object)ReadBool();
         else if (typeof(T) == typeof(string))
             return (T)(object)ReadString();
+        else if (typeof(T) == typeof(Vector3))
+            return (T)(object)ReadVector3();
         else if (typeof(T).IsEnum && Enum.GetUnderlyingType(typeof(T)) == typeof(byte))
             return (T)(object)ReadByte();
         else
@@ -137,10 +176,10 @@ public class ByteBuffer : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public byte ReadByte()
     {
-        if (position + 1 > buffer.Length)
+        if (Position + 1 > Buffer.Length)
             throw new InvalidOperationException("Buffer underflow");
 
-        return buffer[position++];
+        return Buffer[Position++];
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -152,11 +191,11 @@ public class ByteBuffer : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int ReadInt()
     {
-        if (position + 4 > buffer.Length)
+        if (Position + 4 > Buffer.Length)
             throw new InvalidOperationException("Buffer underflow");
 
-        int value = BitConverter.ToInt32(buffer, position);
-        position += 4;
+        int value = BitConverter.ToInt32(Buffer, Position);
+        Position += 4;
         return value;
     }
 
@@ -165,22 +204,31 @@ public class ByteBuffer : IDisposable
     {
         int length = ReadInt();
 
-        if (position + length > buffer.Length)
+        if (Position + length > Buffer.Length)
             throw new InvalidOperationException("Buffer underflow");
 
-        string value = Encoding.UTF8.GetString(buffer, position, length);
-        position += length;
+        string value = Encoding.UTF8.GetString(Buffer, Position, length);
+        Position += length;
         return value;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public float ReadFloat()
     {
-        if (position + 4 > buffer.Length)
+        if (Position + 4 > Buffer.Length)
             throw new InvalidOperationException("Buffer underflow");
 
-        float value = BitConverter.ToSingle(buffer, position);
-        position += 4;
+        float value = BitConverter.ToSingle(Buffer, Position);
+        Position += 4;
         return value;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Vector3 ReadVector3()
+    {
+        float x = (float)ReadInt();
+        float y = (float)ReadInt();
+        float z = (float)ReadInt();
+        return new Vector3(x, y, z);
     }
 }

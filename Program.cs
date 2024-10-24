@@ -38,8 +38,8 @@ class Program
 
             //Generate
             ContractTraspiler.Generate();
-            //UnrealTraspiler.Generate(clientProjectName);
-            //UnrealUtils.RegenerateVSCodes(clientPath, unrealEditorPath, clientProjectName);
+            UnrealTraspiler.Generate(clientProjectName);
+            UnrealUtils.RegenerateVSCodes(clientPath, unrealEditorPath, clientProjectName);
         }
         catch (Exception ex)
         {

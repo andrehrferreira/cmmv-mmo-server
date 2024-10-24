@@ -1,7 +1,7 @@
 ﻿
 class NetworkGateway
 {
-    [Subscribe(ClientPacket.Ping)]
+    /*[Subscribe(ClientPacket.Ping)]
     public static void OnPingHandler(Ping data, Socket socket)
     {
         var pongData = PongPacket.Serialize(new Pong
@@ -10,5 +10,5 @@ class NetworkGateway
         });
 
         socket.Send(pongData);
-    }
+    }*/
 }

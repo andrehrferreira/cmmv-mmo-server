@@ -49,9 +49,9 @@ public class UnrealTraspiler : AbstractTranspiler
             }
         }
 
-        GenerateEnumHeader("EClientPacket", clientPackets, projectName, sharedDirectoryPath);
-        GenerateEnumHeader("EServerPacket", serverPackets, projectName, sharedDirectoryPath);
-        GenerateEnumHeader("EMultiplexPacket", multiplexPackets, projectName, sharedDirectoryPath);
+        GenerateEnumHeader("ClientPacket", clientPackets, projectName, sharedDirectoryPath);
+        GenerateEnumHeader("ServerPacket", serverPackets, projectName, sharedDirectoryPath);
+        GenerateEnumHeader("MultiplexPacket", multiplexPackets, projectName, sharedDirectoryPath);
         CopySubsystem(projectName, sharedDirectoryPath);
     }
 
@@ -63,7 +63,7 @@ public class UnrealTraspiler : AbstractTranspiler
         writer.WriteLine();
         writer.WriteLine("#include \"CoreMinimal.h\"");
         writer.WriteLine("#include \"ByteBuffer.h\"");
-        writer.WriteLine($"#include \"Packets/{contractName}.generated.h\"");
+        writer.WriteLine($"#include \"{contractName}Packet.generated.h\"");
         writer.WriteLine();
         writer.WriteLine("USTRUCT(BlueprintType)");
         writer.WriteLine($"struct F{contractName}");
@@ -106,12 +106,12 @@ public class UnrealTraspiler : AbstractTranspiler
     {
         var contractName = contract.Name;
 
+        writer.WriteLine($"#include \"Packets/{contractName}Packet.h\"");
         writer.WriteLine("#include \"ByteBuffer.h\"");
-        writer.WriteLine($"#include \"Packets/{contractName}.h\"");
         writer.WriteLine();
         writer.WriteLine($"F{contractName} U{contractName}Library::{contractName}Deserialize(UByteBuffer* Buffer)");
         writer.WriteLine("{");
-        writer.WriteLine($"    F{contractName} Data;");
+        writer.WriteLine($"    F{contractName} Data = F{contractName}();");
         writer.WriteLine("    if (!Buffer) return Data;");
         writer.WriteLine();
 
@@ -126,6 +126,7 @@ public class UnrealTraspiler : AbstractTranspiler
 
                 switch (fieldType)
                 {
+                    case "int":
                     case "int32":
                     case "integer":
                         writer.WriteLine($"    Data.{fieldName} = Buffer->GetInt32();");
@@ -170,6 +171,7 @@ public class UnrealTraspiler : AbstractTranspiler
 
                 switch (fieldType)
                 {
+                    case "int":
                     case "int32":
                     case "integer":
                         writer.WriteLine($"    Buffer->PutInt32(Data.{fieldName});");
@@ -213,7 +215,7 @@ public class UnrealTraspiler : AbstractTranspiler
                 writer.WriteLine("#pragma once");
                 writer.WriteLine();
                 writer.WriteLine($"UENUM(BlueprintType)");
-                writer.WriteLine($"enum class {enumName} : uint8");
+                writer.WriteLine($"enum class E{enumName} : uint8");
                 writer.WriteLine("{");
 
                 for (int i = 0; i < values.Count; i++)
@@ -248,53 +250,57 @@ public class UnrealTraspiler : AbstractTranspiler
             "float" => "float",
             "str" => "FString",
             "string" => "FString",
-            "byte" => "byte",
+            "byte" => "uint8",
             "bool" => "bool",
+            "vector3" => "FVector3f",
             _ => "UnsupportedType"
         };
     }
 
     private static void CopySubsystem(string projectName, string sharedDirectoryPath)
     {
-        string projectDirectory = GetProjectDirectory();
+        string projectDirectory = GetProjectDirectory();             
+        string[] files = ["Base36", "ByteBuffer", "Encryption", "QueueBuffer", "ServerSubsystem", "Websocket"];
 
-     
-        string headerFilePath = Path.Combine(projectDirectory, "Core", "Network", "ServerSubsystem.h");
-        string cppFilePath = Path.Combine(projectDirectory, "Core", "Network", "ServerSubsystem.cpp");
-
-        string headerFilePathClient = Path.Combine(sharedDirectoryPath, projectName, "Public", "ServerSubsystem.h");
-        string cppFilePathClient = Path.Combine(sharedDirectoryPath, projectName, "Private", "ServerSubsystem.cpp");
-
-        if (File.Exists(headerFilePath))
+        for(int i = 0; i < files.Length; i++)
         {
-            string headerContent = File.ReadAllText(headerFilePath);
-            headerContent = headerContent.Replace("CLIENT_API", $"{projectName}_API");
+            string file = files[i];
+            string headerFilePath = Path.Combine(projectDirectory, "Unreal", file + ".h");
+            string cppFilePath = Path.Combine(projectDirectory, "Unreal", file +  ".cpp");
+            string headerFilePathClient = Path.Combine(sharedDirectoryPath, projectName, "Public", file + ".h");
+            string cppFilePathClient = Path.Combine(sharedDirectoryPath, projectName, "Private", file +  ".cpp");
 
-            string headerDirectory = Path.GetDirectoryName(headerFilePathClient);
+            if (File.Exists(headerFilePath))
+            {
+                string headerContent = File.ReadAllText(headerFilePath);
+                headerContent = headerContent.Replace("CLIENT_API", $"{projectName.ToUpper()}_API");
 
-            if (!Directory.Exists(headerDirectory))            
-                Directory.CreateDirectory(headerDirectory);
-            
-            File.WriteAllText(headerFilePathClient, headerContent);
-        }
-        else
-        {
-            Console.WriteLine($"Header file not found: {headerFilePath}");
-        }
+                string headerDirectory = Path.GetDirectoryName(headerFilePathClient);
 
-        if (File.Exists(cppFilePath))
-        {
-            string cppContent = File.ReadAllText(cppFilePath);
-            string cppDirectory = Path.GetDirectoryName(cppFilePathClient);
+                if (!Directory.Exists(headerDirectory))
+                    Directory.CreateDirectory(headerDirectory);
 
-            if (!Directory.Exists(cppDirectory))            
-                Directory.CreateDirectory(cppDirectory);
-            
-            File.WriteAllText(cppFilePathClient, cppContent);
-        }
-        else
-        {
-            Console.WriteLine($"CPP file not found: {cppFilePath}");
+                File.WriteAllText(headerFilePathClient, headerContent);
+            }
+            else
+            {
+                Console.WriteLine($"Header file not found: {headerFilePath}");
+            }
+
+            if (File.Exists(cppFilePath))
+            {
+                string cppContent = File.ReadAllText(cppFilePath);
+                string cppDirectory = Path.GetDirectoryName(cppFilePathClient);
+
+                if (!Directory.Exists(cppDirectory))
+                    Directory.CreateDirectory(cppDirectory);
+
+                File.WriteAllText(cppFilePathClient, cppContent);
+            }
+            else
+            {
+                Console.WriteLine($"CPP file not found: {cppFilePath}");
+            }
         }
     }
 }

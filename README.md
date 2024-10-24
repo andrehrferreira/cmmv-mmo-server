@@ -77,6 +77,9 @@ Once the virtual link and .env file are set up:
 | ECC and AES256 Encryption          | ⏳ Not Implemented | Encryption using ECC and AES256 needs to be implemented.    |
 | Base Replication                   | ⏳ Not Implemented | Replication system for core game elements is not implemented yet. |
 | JWT Authentication                 | ⏳ Not Implemented | JWT-based authentication needs to be implemented.           |
+| Reactive System                    | ✅ Working         | Reactive system is fully functional and operational.        |
+| Network Event System               | ✅ Working         | Reactive network event system is implemented and functional.|
+| Reactive Request Handlers          | 🛠 In Progress     | Reactive request handlers with decorators are being developed. |
 
 ## Benchmark 
 

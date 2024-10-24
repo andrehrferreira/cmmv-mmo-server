@@ -2,5 +2,7 @@
 
 public enum ClientPacket
 {
-    Ping = 0
+    Ping = 0,
+    SyncEvent = 1,
+    PlayMontage = 2,
 }

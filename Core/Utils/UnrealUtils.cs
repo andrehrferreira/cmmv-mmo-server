@@ -9,6 +9,7 @@ public class UnrealUtils
 
         try
         {
+            Console.WriteLine();
             Console.WriteLine("Regeneration of client Visual Studio files...");
 
             string dotnetExe = Path.Combine("C:\\Program Files\\dotnet", "dotnet.exe");
@@ -16,7 +17,7 @@ public class UnrealUtils
             if (!File.Exists(dotnetExe))
                 throw new Exception($"Dotnet executable not found at path: {dotnetExe}");
 
-            string unrealBuildToolPath = Path.Combine(unrealEnginePath, "Binaries", "DotNET", "UnrealBuildTool", "UnrealBuildTool.dll");
+            string unrealBuildToolPath = Path.Combine(unrealEnginePath, "Build", "BatchFiles", "Build.bat");
 
             if (!File.Exists(unrealBuildToolPath))
                 throw new Exception($"UnrealBuildTool.dll not found at path: {unrealBuildToolPath}");
@@ -26,11 +27,11 @@ public class UnrealUtils
             if (!File.Exists(projectFilePath))
                 throw new Exception($"Unreal project file not found at path: {projectFilePath}");
 
-            string arguments = $"\"{unrealBuildToolPath}\" -projectfiles -project=\"{projectFilePath}\" -game -rocket -progress";
+            string arguments = $"-Target=\"ClientEditor Win64 Development -Project=\"\"{projectFilePath}\"\"\" -WaitMutex -FromMsBuild";
 
             ProcessStartInfo processInfo = new ProcessStartInfo
             {
-                FileName = dotnetExe,
+                FileName = unrealBuildToolPath,
                 Arguments = arguments,
                 RedirectStandardOutput = true,
                 UseShellExecute = false,

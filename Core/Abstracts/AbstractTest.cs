@@ -68,6 +68,14 @@ public class Expectation<T>
         }
     }
 
+    public void ToBeNull()
+    {
+        if (_actual != null)
+        {
+            throw new Exception($"Expected: Null, but got: {_actual}");
+        }
+    }
+
     public void ToBeTrue()
     {
         if (!(_actual is bool boolean) || !boolean)

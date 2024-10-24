@@ -253,6 +253,74 @@ namespace Tests
                     Expect(secondValue).ToBe(456);
                     Expect(stringValue).ToBe("Test string");
                 });
+
+                It("should write and read a Vector3 value", () =>
+                {
+                    var buffer = ByteBuffer.CreateEmptyBuffer();
+                    var vector = new Vector3(10, 20, 30);
+                    buffer.Write(vector);
+
+                    buffer = new ByteBuffer(buffer.GetBuffer());
+                    var result = buffer.Read<Vector3>();
+
+                    Expect(result.X).ToBe(10);
+                    Expect(result.Y).ToBe(20);
+                    Expect(result.Z).ToBe(30);
+                });
+
+                It("should handle buffer underflow when reading a Vector3", () =>
+                {
+                    var buffer = ByteBuffer.CreateEmptyBuffer();
+                    buffer.Write(10); // Only writing partial data for Vector3 (one int instead of three)
+
+                    buffer = new ByteBuffer(buffer.GetBuffer());
+
+                    try
+                    {
+                        buffer.Read<Vector3>();
+                        Expect(false).ToBeTrue(); // This should not be reached
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        Expect(ex).NotToBeNull();
+                        Expect(ex.Message).ToBe("Buffer underflow");
+                    }
+                });
+
+                It("should write and read a Vector3 with negative values", () =>
+                {
+                    var buffer = ByteBuffer.CreateEmptyBuffer();
+                    var vector = new Vector3(-10, -20, -30);
+                    buffer.Write(vector);
+
+                    buffer = new ByteBuffer(buffer.GetBuffer());
+                    var result = buffer.Read<Vector3>();
+
+                    Expect(result.X).ToBe(-10);
+                    Expect(result.Y).ToBe(-20);
+                    Expect(result.Z).ToBe(-30);
+                });
+
+                It("should write and read multiple Vector3 values sequentially", () =>
+                {
+                    var buffer = ByteBuffer.CreateEmptyBuffer();
+                    var vector1 = new Vector3(1, 2, 3);
+                    var vector2 = new Vector3(4, 5, 6);
+                    buffer.Write(vector1);
+                    buffer.Write(vector2);
+
+                    buffer = new ByteBuffer(buffer.GetBuffer());
+                    var result1 = buffer.Read<Vector3>();
+                    var result2 = buffer.Read<Vector3>();
+
+                    Expect(result1.X).ToBe(1);
+                    Expect(result1.Y).ToBe(2);
+                    Expect(result1.Z).ToBe(3);
+
+                    Expect(result2.X).ToBe(4);
+                    Expect(result2.Y).ToBe(5);
+                    Expect(result2.Z).ToBe(6);
+                });
             });
         }
     }

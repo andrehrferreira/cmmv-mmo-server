@@ -4,10 +4,6 @@ using System.Runtime.CompilerServices;
 
 public struct PingPacket
 {
-    public ClientPacket Type = ClientPacket.Ping;
-
-    public PingPacket() { }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ByteBuffer Serialize(Ping data)
     {
