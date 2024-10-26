@@ -1,4 +1,4 @@
-﻿[Contract("OpenContainer", PacketType.Server)]
+﻿[Contract("OpenContainer", PacketType.Server, PacketAction.None, false, PacketSendType.Self, true)]
 public struct OpenContainerDTO
 {
     [ContractField("byte")]
@@ -11,14 +11,14 @@ public struct OpenContainerDTO
     public string ContainerId;
 }
 
-[Contract("CloseContainer", PacketType.Server)]
+[Contract("CloseContainer", PacketType.Server, PacketAction.None, false, PacketSendType.Self, true)]
 public struct CloseContainerDTO
 {
     [ContractField("byte")]
     public byte ContainerType;
 }
 
-[Contract("AddItemContainer", PacketType.Server)]
+[Contract("AddItemContainer", PacketType.Server, PacketAction.None, false, PacketSendType.Self, true)]
 public struct AddItemContainerDTO
 {
     [ContractField("string")]
@@ -49,7 +49,7 @@ public struct AddItemContainerDTO
     public bool ShowHint;
 }
 
-[Contract("RemoveItemContainer", PacketType.Server)]
+[Contract("RemoveItemContainer", PacketType.Server, PacketAction.None, false, PacketSendType.Self, true)]
 public struct RemoveItemContainerDTO
 {
     [ContractField("string")]
@@ -62,7 +62,7 @@ public struct RemoveItemContainerDTO
     public string ItemRef;
 }
 
-[Contract("ChangeAmountItemContainer", PacketType.Server)]
+[Contract("ChangeAmountItemContainer", PacketType.Server, PacketAction.None, false, PacketSendType.Self, true)]
 public struct ChangeAmountItemContainerDTO
 {
     [ContractField("string")]

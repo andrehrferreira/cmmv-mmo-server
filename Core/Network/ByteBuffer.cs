@@ -1,11 +1,41 @@
-﻿using System.Text;
+﻿/*
+ * ByteBuffer
+ * 
+ * Author: Diego Guedes
+ * Modified by: Andre Ferreira
+ * 
+ * Copyright (c) Uzmi Games. Licensed under the MIT License.
+ *    
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+using System.Text;
 using System.Runtime.CompilerServices;
 
-public class ByteBuffer
+public class ByteBuffer : IDisposable
 {
+    private int _referenceCount = 1;
+
     private byte[] Buffer;
     public int Position;
     private bool Disposed = false;
+
+    public volatile bool IsDestroyed;
+
+    public ByteBuffer Next;
 
     public ByteBuffer(int initialSize = 0)
     {
@@ -21,10 +51,31 @@ public class ByteBuffer
 
     public ByteBuffer(ByteBuffer other)
     {
-        //if (other == null) throw new ArgumentNullException(nameof(other));
-        Buffer = new byte[other.Buffer.Length];
-        Array.Copy(other.Buffer, Buffer, other.Buffer.Length);
-        Position = other.Position;
+        if (other == null) throw new ArgumentNullException(nameof(other));
+        Buffer = other.Buffer;
+        Position = 0;
+        other.Retain();
+    }
+
+    public void Reset()
+    {
+        Position = 0;
+        Next = null;
+    }
+
+    ~ByteBuffer()
+    {
+        if(Buffer != null)
+        {
+            Buffer = null;
+            IsDestroyed = true;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Retain()
+    {
+        _referenceCount++;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -44,11 +95,21 @@ public class ByteBuffer
     {
         int requiredCapacity = Position + requiredBytes;
 
-        if (requiredCapacity > Buffer.Length)
+        if (Buffer == null || requiredCapacity > Buffer.Length)
         {
-            int newSize = Math.Max(Buffer.Length * 2, requiredCapacity);
-            Array.Resize(ref Buffer, newSize);
+            int newSize = Buffer == null ? requiredCapacity : Math.Max(Buffer.Length * 2, requiredCapacity);
+            Buffer = Buffer == null ? new byte[newSize] : ResizeBuffer(Buffer, newSize);
         }
+    }
+
+    private byte[] ResizeBuffer(byte[] buffer, int newSize)
+    {
+        byte[] newBuffer = new byte[newSize];
+
+        if (buffer != null)        
+            Array.Copy(buffer, 0, newBuffer, 0, buffer.Length);
+        
+        return newBuffer;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -60,7 +121,7 @@ public class ByteBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ByteBuffer CreateEmptyBuffer()
     {
-        return new ByteBuffer();
+        return ConcurrentByteBufferPool.Acquire();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -77,8 +138,13 @@ public class ByteBuffer
     {
         if (!Disposed)
         {
-            Buffer = null;
-            Disposed = true;
+            _referenceCount--;
+            if (_referenceCount <= 0)
+            {
+                Disposed = true;
+                Buffer = null;
+                ConcurrentByteBufferPool.Release(this);
+            }
         }
     }
 
@@ -151,6 +217,15 @@ public class ByteBuffer
         return this;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ByteBuffer Write(Rotator value)
+    {
+        Write((int)value.Roll);
+        Write((int)value.Pitch);
+        Write((int)value.Yaw);
+        return this;
+    }
+
     // Read methods
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T Read<T>()
@@ -167,6 +242,8 @@ public class ByteBuffer
             return (T)(object)ReadString();
         else if (typeof(T) == typeof(Vector3))
             return (T)(object)ReadVector3();
+        else if (typeof(T) == typeof(Rotator))
+            return (T)(object)ReadRotator();
         else if (typeof(T).IsEnum && Enum.GetUnderlyingType(typeof(T)) == typeof(byte))
             return (T)(object)ReadByte();
         else
@@ -237,5 +314,14 @@ public class ByteBuffer
     {
         int id = ReadInt();
         return Base36.ToString(id);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Rotator ReadRotator()
+    {
+        float roll = (float)ReadInt();
+        float pitch = (float)ReadInt();
+        float yaw = (float)ReadInt();
+        return new Rotator(roll, pitch, yaw);
     }
 }

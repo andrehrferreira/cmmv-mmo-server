@@ -32,7 +32,7 @@ public struct UpdateEntityPacket
     public static void Send(Entity owner, UpdateEntityDTO data, Entity entity)
     {
         var buffer = Serialize(data);
-        QueueBuffer.AddBuffer(ServerPacket.UpdateEntity, entity.Socket.Id, buffer);
+        QueueBuffer.AddBuffer(ServerPacket.UpdateEntity, entity.Conn.Id, buffer);
     }
 
 }

@@ -1,6 +1,6 @@
 ﻿
 
-[Contract("CreateEntity", PacketType.Server, PacketAction.None, true, PacketSendType.ToEntity)]
+[Contract("CreateEntity", PacketType.Server, PacketAction.None, true, PacketSendType.ToEntity, true)]
 public struct CreateEntityDTO
 {
     [ContractField("id")]
@@ -34,7 +34,7 @@ public struct CreateEntityDTO
     public string Guild;
 }
 
-[Contract("UpdateEntity", PacketType.Server, PacketAction.None, true, PacketSendType.ToEntity)]
+[Contract("UpdateEntity", PacketType.Server, PacketAction.None, true, PacketSendType.ToEntity, true)]
 public struct UpdateEntityDTO
 {
     [ContractField("id")]
@@ -53,14 +53,14 @@ public struct UpdateEntityDTO
     public int Life;
 }
 
-[Contract("RemoveEntity", PacketType.Server, PacketAction.AreaOfInterest, true)]
+[Contract("RemoveEntity", PacketType.Server, PacketAction.AreaOfInterest, true, PacketSendType.ToEntity, true)]
 public struct RemoveEntityDTO
 {
     [ContractField("id")]
     public string Id;
 }
 
-[Contract("SyncEvent", PacketType.Multiplex, PacketAction.AreaOfInterest, true)]
+[Contract("SyncEvent", PacketType.Multiplex, PacketAction.AreaOfInterest, true, PacketSendType.ToEntity, true)]
 public struct SyncEventDTO
 {
     [ContractField("id")]
@@ -70,7 +70,7 @@ public struct SyncEventDTO
     public byte EventId;
 }
 
-[Contract("PlayMontage", PacketType.Multiplex, PacketAction.AreaOfInterest, true)]
+[Contract("PlayMontage", PacketType.Multiplex, PacketAction.AreaOfInterest, true, PacketSendType.ToEntity, true)]
 public struct PlayMontageDTO
 {
     [ContractField("id")]
@@ -80,7 +80,7 @@ public struct PlayMontageDTO
     public int Index;
 }
 
-[Contract("Action", PacketType.Multiplex, PacketAction.AreaOfInterest, true)]
+[Contract("Action", PacketType.Multiplex, PacketAction.AreaOfInterest, true, PacketSendType.ToEntity, true)]
 public struct ActionDTO
 {
     [ContractField("id")]
@@ -90,7 +90,7 @@ public struct ActionDTO
     public byte Index;
 }
 
-[Contract("ActionArea", PacketType.Multiplex, PacketAction.AreaOfInterest, true)]
+[Contract("ActionArea", PacketType.Multiplex, PacketAction.AreaOfInterest, true, PacketSendType.ToEntity, true)]
 public struct ActionAreaDTO
 {
     [ContractField("id")]
@@ -103,7 +103,7 @@ public struct ActionAreaDTO
     public Vector3 Position;
 }
 
-[Contract("SelectTarget", PacketType.Multiplex, PacketAction.AreaOfInterest, true)]
+[Contract("SelectTarget", PacketType.Multiplex, PacketAction.AreaOfInterest, true, PacketSendType.ToEntity, true)]
 public struct SelectTargetDTO
 {
     [ContractField("id")]
@@ -113,14 +113,14 @@ public struct SelectTargetDTO
     public string Target;
 }
 
-[Contract("CancelTarget", PacketType.Multiplex, PacketAction.AreaOfInterest, true)]
+[Contract("CancelTarget", PacketType.Multiplex, PacketAction.AreaOfInterest, true, PacketSendType.ToEntity, true)]
 public struct CancelTargetDTO
 {
     [ContractField("id")]
     public string Id;
 }
 
-[Contract("TakeDamage", PacketType.Server, PacketAction.AreaOfInterest, true)]
+[Contract("TakeDamage", PacketType.Server, PacketAction.AreaOfInterest, true, PacketSendType.ToEntity, true)]
 public struct TakeDamageDTO
 {
     [ContractField("id")]
@@ -136,14 +136,14 @@ public struct TakeDamageDTO
     public byte DamageType;
 }
 
-[Contract("TakeMiss", PacketType.Server, PacketAction.AreaOfInterest, true)]
+[Contract("TakeMiss", PacketType.Server, PacketAction.AreaOfInterest, true, PacketSendType.ToEntity, true)]
 public struct TakeMissDTO
 {
     [ContractField("id")]
     public string Id;
 }
 
-[Contract("Heal", PacketType.Server, PacketAction.AreaOfInterest, true)]
+[Contract("Heal", PacketType.Server, PacketAction.AreaOfInterest, true, PacketSendType.ToEntity, true)]
 public struct HealDTO
 {
     [ContractField("id")]
@@ -159,7 +159,7 @@ public struct HealDTO
     public string CasterId;
 }
 
-[Contract("Dissolve", PacketType.Server, PacketAction.AreaOfInterest, true)]
+[Contract("Dissolve", PacketType.Server, PacketAction.AreaOfInterest, true, PacketSendType.ToEntity, true)]
 public struct DissolveDTO
 {
     [ContractField("id")]

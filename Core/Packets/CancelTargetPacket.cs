@@ -21,10 +21,10 @@ public struct CancelTargetPacket
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Send(Entity owner, CancelTargetDTO data)
+    public static void Send(Entity owner, CancelTargetDTO data, Entity entity)
     {
         var buffer = Serialize(data);
-        owner.Reply(ServerPacket.CancelTarget, buffer, true);
+        owner.Reply(ServerPacket.CancelTarget, buffer, true, true);
     }
 
 }
@@ -34,9 +34,9 @@ public partial class Server
     public static NetworkEvents<CancelTargetDTO> OnCancelTarget = new NetworkEvents<CancelTargetDTO>();
 
     [Subscribe(ClientPacket.CancelTarget)]
-    public static void OnCancelTargetHandler(CancelTargetDTO data, Socket socket)
+    public static void OnCancelTargetHandler(CancelTargetDTO data, Connection conn)
     {
         var packet = CancelTargetPacket.Serialize(data);
-        socket.Entity.Reply(ServerPacket.CancelTarget, packet, true);
+        conn.Entity.Reply(ServerPacket.CancelTarget, packet, true);
     }
 }

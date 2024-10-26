@@ -23,10 +23,10 @@ public struct PlayMontagePacket
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Send(Entity owner, PlayMontageDTO data)
+    public static void Send(Entity owner, PlayMontageDTO data, Entity entity)
     {
         var buffer = Serialize(data);
-        owner.Reply(ServerPacket.PlayMontage, buffer, true);
+        owner.Reply(ServerPacket.PlayMontage, buffer, true, true);
     }
 
 }
@@ -36,9 +36,9 @@ public partial class Server
     public static NetworkEvents<PlayMontageDTO> OnPlayMontage = new NetworkEvents<PlayMontageDTO>();
 
     [Subscribe(ClientPacket.PlayMontage)]
-    public static void OnPlayMontageHandler(PlayMontageDTO data, Socket socket)
+    public static void OnPlayMontageHandler(PlayMontageDTO data, Connection conn)
     {
         var packet = PlayMontagePacket.Serialize(data);
-        socket.Entity.Reply(ServerPacket.PlayMontage, packet, true);
+        conn.Entity.Reply(ServerPacket.PlayMontage, packet, true);
     }
 }

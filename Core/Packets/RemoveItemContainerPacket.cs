@@ -28,7 +28,7 @@ public struct RemoveItemContainerPacket
     public static void Send(Entity owner, RemoveItemContainerDTO data)
     {
         var buffer = Serialize(data);
-        owner.Socket.Send(ServerPacket.RemoveItemContainer, buffer);
+        owner.Conn.Send(ServerPacket.RemoveItemContainer, buffer, true);
     }
 
 }

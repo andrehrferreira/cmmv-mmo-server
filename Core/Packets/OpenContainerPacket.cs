@@ -28,7 +28,7 @@ public struct OpenContainerPacket
     public static void Send(Entity owner, OpenContainerDTO data)
     {
         var buffer = Serialize(data);
-        owner.Socket.Send(ServerPacket.OpenContainer, buffer);
+        owner.Conn.Send(ServerPacket.OpenContainer, buffer, true);
     }
 
 }

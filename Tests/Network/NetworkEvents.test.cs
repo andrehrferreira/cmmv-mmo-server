@@ -11,7 +11,7 @@ namespace Tests
                 {
                     var networkEvents = new NetworkEvents<string>();
                     string receivedData = null;
-                    Socket receivedSocket = null;
+                    Connection receivedSocket = null;
 
                     networkEvents.Subscribe((data, socket) =>
                     {
@@ -19,7 +19,7 @@ namespace Tests
                         receivedSocket = socket;
                     });
 
-                    var socket = new Socket();
+                    var socket = new Connection();
                     networkEvents.Emit("Test Data", socket);
 
                     Expect(receivedData).ToBe("Test Data");

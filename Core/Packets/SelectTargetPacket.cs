@@ -23,10 +23,10 @@ public struct SelectTargetPacket
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Send(Entity owner, SelectTargetDTO data)
+    public static void Send(Entity owner, SelectTargetDTO data, Entity entity)
     {
         var buffer = Serialize(data);
-        owner.Reply(ServerPacket.SelectTarget, buffer, true);
+        owner.Reply(ServerPacket.SelectTarget, buffer, true, true);
     }
 
 }
@@ -36,9 +36,9 @@ public partial class Server
     public static NetworkEvents<SelectTargetDTO> OnSelectTarget = new NetworkEvents<SelectTargetDTO>();
 
     [Subscribe(ClientPacket.SelectTarget)]
-    public static void OnSelectTargetHandler(SelectTargetDTO data, Socket socket)
+    public static void OnSelectTargetHandler(SelectTargetDTO data, Connection conn)
     {
         var packet = SelectTargetPacket.Serialize(data);
-        socket.Entity.Reply(ServerPacket.SelectTarget, packet, true);
+        conn.Entity.Reply(ServerPacket.SelectTarget, packet, true);
     }
 }

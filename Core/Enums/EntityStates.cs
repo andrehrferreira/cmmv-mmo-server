@@ -1,0 +1,31 @@
+﻿[Flags]
+public enum EntityStates
+{
+    None = 0,
+    Stunned = 1 << 0,
+    Dead = 1 << 1,
+    Ally = 1 << 2,
+    Enemy = 1 << 3,
+    NegativeKarma = 1 << 4,
+    Burning = 1 << 5,
+    Bleeding = 1 << 6,
+    Poisoned = 1 << 7,
+    Confused = 1 << 8,         
+    Silenced = 1 << 9,        
+    Party = 1 << 10,
+    Guild = 1 << 11,
+    Stealth = 1 << 12,
+    Mounted = 1 << 13,
+    Feared = 1 << 14,
+    Invulnerable = 1 << 15,
+    Frozen = 1 << 16,
+    Untargettable = 1 << 17,
+    Frenzy = 1 << 18,
+    DuelZone = 1 << 19,
+    SafeZone = 1 << 20,
+    Admin = 1 << 21,
+    Pet = 1 << 22,
+    Rooted = 1 << 23,         
+    Sleeping = 1 << 24,       
+    Empowered = 1 << 25       
+}

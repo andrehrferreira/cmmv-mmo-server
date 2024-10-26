@@ -5,7 +5,7 @@ This is an Multiplayer server based on the CMMV framework, which automatically g
 ## Prerequisites
 
 * **Windows 10 or higher**
-* **Unreal Engine 5.3 or higher**
+* **Unreal Engine 5.0 or higher**
 * **.NET SDK 6.0 or higher**
 * **Visual Studio 2022**
 
@@ -17,6 +17,20 @@ Before setting up the project, ensure you have the following NuGet packages inst
 2. **Microsoft.VisualStudio.Interop**: Required for integration with Visual Studio and automation features.  
    [Download Microsoft.VisualStudio.Interop](https://www.nuget.org/packages/Microsoft.VisualStudio.Interop)
 
+3. **System.Reactive:** Provides a reactive programming library for C#. Used for asynchronous and observable operations, facilitating the handling of events and data flows.			
+   [Download System.Reactive](https://www.nuget.org/packages/System.Reactive)
+
+Enable unsafe code in Visual Studio
+
+To enable unsafe code in Visual Studio, you need to modify the project settings. Enabling unsafe code allows you to work with pointers and perform low-level memory manipulation, which is often necessary for optimizing performance in some scenarios. Here’s how you can do it:
+
+1. Open Your Project: In Visual Studio, open the solution that contains your project.
+2. Access Project Properties: In the Solution Explorer, right-click on your project (not the solution) and select Properties.
+3. Navigate to the Build Settings: In the project properties window, go to the Build tab.
+4. Enable Unsafe Code: Under the General section, check the option Allow unsafe code.
+5. Save Changes: Click Apply or OK to save your changes.
+
+## Settings
 
 ## Step 1: Create a Virtual Link with the Client Directory
 
@@ -50,6 +64,37 @@ Once the virtual link and .env file are set up:
 
 1. Build the project using Visual Studio or your preferred method.
 2. When building, the system will generate RPC communication packages and .cpp files that can be used directly in Unreal Engine for C++ or Blueprint integration.
+
+## Step 4: Modifying the *.Build.cs File
+
+To set up the project dependencies properly, you'll need to modify the *.Build.cs file located in the Source directory of your Unreal Engine project. This file specifies the modules and libraries required for building the project. Follow these instructions to add the necessary dependencies:
+
+1. Navigate to the Source directory of your Unreal project.
+2. Locate and open the ``*.Build.cs`` file for your module (typically named after your project or module name).
+3. Add the following dependencies to the ``PublicDependencyModuleNames`` list. These dependencies are required for WebSocket, networking, and Steam integration:
+
+```csharp
+PublicDependencyModuleNames.AddRange(new string[] { 
+    "Core", 
+    "CoreUObject", 
+    "Engine", 
+    "InputCore", 
+    "WebSockets", 
+    "Sockets", 
+    "Networking", 
+    "Steamworks" 
+});
+```
+
+4. To link the Steam API library (``steam_api64.lib``), add the following line under ``PublicAdditionalLibraries``:
+
+```csharp
+PublicAdditionalLibraries.Add(Path.Combine(ModuleDirectory, "Steam", "lib", "steam_api64.lib"));
+```
+
+This line assumes that the ``Steam SDK`` is located in a folder called Steam within your module directory. If your directory structure differs, adjust the path accordingly to match the location of the Steam SDK in your project.
+
+
 
 ## Features
 
@@ -92,11 +137,11 @@ When running the server in debug mode, the system automatically generates necess
 |------------------------------------|-------------------|-------------------------------------------------------------|
 | RPC                                | 🛠 In Progress     | RPC system is currently under development.                  |
 | C# Packet Creation                 | ✅ Working         | Packet creation in C# is functional and tested.             |
-| C++ Interface for Unreal           | 🛠 In Progress     | Interface creation for Unreal Engine is in progress.        |
+| C++ Interface for Unreal           | ✅ Working         | Interface creation for Unreal Engine is in progress.        |
 | Testing System                     | ✅ Working         | Automated testing system is functional and operational.     |
 | ByteBuffer and QueueBuffer         | ✅ Working         | High-performance binary communication buffers are working.  |
 | WebSocket                          | ⏳ Not Implemented | WebSocket support has yet to be implemented.                |
-| UDP                                | ⏳ Not Implemented | UDP communication setup is yet to be implemented.           |
+| UDP                                | 🛠 In Progress     | UDP communication setup is yet to be implemented.           |
 | XOR Encoding                       | ⏳ Not Implemented | XOR encoding system is yet to be implemented.               |
 | ECC and AES256 Encryption          | ⏳ Not Implemented | Encryption using ECC and AES256 needs to be implemented.    |
 | Base Replication                   | ⏳ Not Implemented | Replication system for core game elements is not implemented yet. |

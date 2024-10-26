@@ -18,5 +18,6 @@ public enum ReplyTransformData: byte
     Base36 = 1,
     Base64 = 2,
     JSON = 3,
-    Byte = 4
+    Byte = 4,
+    Flag = 5
 }

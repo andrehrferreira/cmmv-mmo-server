@@ -23,10 +23,10 @@ public struct SyncEventPacket
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Send(Entity owner, SyncEventDTO data)
+    public static void Send(Entity owner, SyncEventDTO data, Entity entity)
     {
         var buffer = Serialize(data);
-        owner.Reply(ServerPacket.SyncEvent, buffer, true);
+        owner.Reply(ServerPacket.SyncEvent, buffer, true, true);
     }
 
 }
@@ -36,9 +36,9 @@ public partial class Server
     public static NetworkEvents<SyncEventDTO> OnSyncEvent = new NetworkEvents<SyncEventDTO>();
 
     [Subscribe(ClientPacket.SyncEvent)]
-    public static void OnSyncEventHandler(SyncEventDTO data, Socket socket)
+    public static void OnSyncEventHandler(SyncEventDTO data, Connection conn)
     {
         var packet = SyncEventPacket.Serialize(data);
-        socket.Entity.Reply(ServerPacket.SyncEvent, packet, true);
+        conn.Entity.Reply(ServerPacket.SyncEvent, packet, true);
     }
 }

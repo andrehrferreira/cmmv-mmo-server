@@ -191,10 +191,13 @@ namespace Tests
                     var buffer = ByteBuffer.CreateEmptyBuffer();
                     buffer.Write(-9876);
 
-                    buffer = new ByteBuffer(buffer.GetBuffer());
-                    int result = buffer.Read<int>();
+                    var copiedBuffer = new ByteBuffer(buffer);
+                    int result = copiedBuffer.Read<int>();
 
                     Expect(result).ToBe(-9876);
+
+                    copiedBuffer.Dispose();
+                    buffer.Dispose();
                 });
 
                 It("should throw exception when reading unsupported type", () =>

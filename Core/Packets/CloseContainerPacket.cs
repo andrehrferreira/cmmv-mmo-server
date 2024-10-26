@@ -24,7 +24,7 @@ public struct CloseContainerPacket
     public static void Send(Entity owner, CloseContainerDTO data)
     {
         var buffer = Serialize(data);
-        owner.Socket.Send(ServerPacket.CloseContainer, buffer);
+        owner.Conn.Send(ServerPacket.CloseContainer, buffer, true);
     }
 
 }

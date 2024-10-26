@@ -21,10 +21,10 @@ public struct TakeMissPacket
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Send(Entity owner, TakeMissDTO data)
+    public static void Send(Entity owner, TakeMissDTO data, Entity entity)
     {
         var buffer = Serialize(data);
-        owner.Reply(ServerPacket.TakeMiss, buffer, true);
+        owner.Reply(ServerPacket.TakeMiss, buffer, true, true);
     }
 
 }

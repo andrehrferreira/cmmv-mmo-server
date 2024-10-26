@@ -9,7 +9,7 @@ namespace Tests
             {
                 It("should add and retrieve a socket", () =>
                 {
-                    var socket = new Socket();
+                    var socket = new Connection();
                     QueueBuffer.AddSocket("testSocket", socket);
 
                     var retrievedSocket = QueueBuffer.GetSocket("testSocket");
@@ -56,7 +56,7 @@ namespace Tests
                     var largeBuffer = new ByteBuffer(new byte[QueueBuffer.MaxBufferSize]);
                     QueueBuffer.AddBuffer(0, "testSocket", largeBuffer);
 
-                    var socket = new Socket();
+                    var socket = new Connection();
                     QueueBuffer.AddSocket("testSocket", socket);
 
                     try

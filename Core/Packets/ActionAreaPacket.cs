@@ -25,10 +25,10 @@ public struct ActionAreaPacket
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Send(Entity owner, ActionAreaDTO data)
+    public static void Send(Entity owner, ActionAreaDTO data, Entity entity)
     {
         var buffer = Serialize(data);
-        owner.Reply(ServerPacket.ActionArea, buffer, true);
+        owner.Reply(ServerPacket.ActionArea, buffer, true, true);
     }
 
 }
@@ -38,9 +38,9 @@ public partial class Server
     public static NetworkEvents<ActionAreaDTO> OnActionArea = new NetworkEvents<ActionAreaDTO>();
 
     [Subscribe(ClientPacket.ActionArea)]
-    public static void OnActionAreaHandler(ActionAreaDTO data, Socket socket)
+    public static void OnActionAreaHandler(ActionAreaDTO data, Connection conn)
     {
         var packet = ActionAreaPacket.Serialize(data);
-        socket.Entity.Reply(ServerPacket.ActionArea, packet, true);
+        conn.Entity.Reply(ServerPacket.ActionArea, packet, true);
     }
 }

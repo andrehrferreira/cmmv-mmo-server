@@ -24,7 +24,7 @@ public struct LoginTokenPacket
     public static void Send(Entity owner, LoginTokenDTO data)
     {
         var buffer = Serialize(data);
-        owner.Socket.Send(ServerPacket.LoginToken, buffer);
+        owner.Conn.Send(ServerPacket.LoginToken, buffer, false);
     }
 
 }

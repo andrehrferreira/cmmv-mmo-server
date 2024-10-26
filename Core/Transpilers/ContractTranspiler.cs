@@ -1,4 +1,27 @@
-﻿using DotNetEnv;
+﻿/*
+ * ContractTraspiler
+ * 
+ * Author: Andre Ferreira
+ * 
+ * Copyright (c) Uzmi Games. Licensed under the MIT License.
+ *    
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+using DotNetEnv;
 using System;
 using System.Reflection;
 
@@ -221,10 +244,10 @@ public class ContractTraspiler: AbstractTranspiler
     {
         writer.WriteLine();
         writer.WriteLine($"    [Subscribe(ClientPacket.{contract.Name.Replace("DTO", "")})]");
-        writer.WriteLine($"    public static void On{contract.Name.Replace("DTO", "")}Handler({contract} data, Socket socket)");
+        writer.WriteLine($"    public static void On{contract.Name.Replace("DTO", "")}Handler({contract} data, Connection conn)");
         writer.WriteLine("    {");
         writer.WriteLine($"        var packet = {contract.Name.Replace("DTO", "")}Packet.Serialize(data);");
-        writer.WriteLine($"        socket.Entity.Reply(ServerPacket.{contract.Name.Replace("DTO", "")}, packet, {attribute.Queue.ToString().ToLower()});");
+        writer.WriteLine($"        conn.Entity.Reply(ServerPacket.{contract.Name.Replace("DTO", "")}, packet, {attribute.Queue.ToString().ToLower()});");
         writer.WriteLine("    }");
     }
 
@@ -240,7 +263,7 @@ public class ContractTraspiler: AbstractTranspiler
 
         if (attribute.Action == PacketAction.AreaOfInterest)
         {
-            writer.WriteLine($"        owner.Reply(ServerPacket.{contractName.Replace("DTO", "")}, buffer, {attribute.Queue.ToString().ToLower()});");
+            writer.WriteLine($"        owner.Reply(ServerPacket.{contractName.Replace("DTO", "")}, buffer, {attribute.Queue.ToString().ToLower()}, {attribute.EncryptedData.ToString().ToLower()});");
         }
         else
         {
@@ -248,22 +271,22 @@ public class ContractTraspiler: AbstractTranspiler
             {
                 if (attribute.SendType == PacketSendType.Self)
                 {
-                    writer.WriteLine($"        QueueBuffer.AddBuffer(ServerPacket.{contractName.Replace("DTO", "")}, owner.Socket.Id, buffer);");
+                    writer.WriteLine($"        QueueBuffer.AddBuffer(ServerPacket.{contractName.Replace("DTO", "")}, owner.Conn.Id, buffer);");
                 }
                 else if (attribute.SendType == PacketSendType.ToEntity)
                 {
-                    writer.WriteLine($"        QueueBuffer.AddBuffer(ServerPacket.{contractName.Replace("DTO", "")}, entity.Socket.Id, buffer);");
+                    writer.WriteLine($"        QueueBuffer.AddBuffer(ServerPacket.{contractName.Replace("DTO", "")}, entity.Conn.Id, buffer);");
                 }
             }
             else
             {
                 if (attribute.SendType == PacketSendType.Self)
                 {
-                    writer.WriteLine($"        owner.Socket.Send(ServerPacket.{contractName.Replace("DTO", "")}, buffer);");
+                    writer.WriteLine($"        owner.Conn.Send(ServerPacket.{contractName.Replace("DTO", "")}, buffer, {attribute.EncryptedData.ToString().ToLower()});");
                 }
                 else if (attribute.SendType == PacketSendType.ToEntity)
                 {
-                    writer.WriteLine($"        entity.Socket.Send(ServerPacket.{contractName.Replace("DTO", "")}, buffer);");
+                    writer.WriteLine($"        entity.Conn.Send(ServerPacket.{contractName.Replace("DTO", "")}, buffer, {attribute.EncryptedData.ToString().ToLower()});");
                 }
             }
         }

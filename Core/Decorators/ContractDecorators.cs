@@ -7,10 +7,12 @@ public class ContractAttribute: Attribute
     public PacketAction Action { get; }
     public bool Queue { get; set; }
     public PacketSendType SendType { get; set; }
+    public bool EncryptedData { get; set; }
 
     public ContractAttribute(
         string name, PacketType type, PacketAction action = PacketAction.None, 
-        bool queue = false, PacketSendType sendType = PacketSendType.Self
+        bool queue = false, PacketSendType sendType = PacketSendType.Self,
+        bool encryptedData = false
     )
     {
         Name = name;
@@ -18,6 +20,7 @@ public class ContractAttribute: Attribute
         Action = action;
         Queue = queue;
         SendType = sendType;
+        EncryptedData = encryptedData;
     }
 }
 

@@ -21,10 +21,10 @@ public struct RemoveEntityPacket
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Send(Entity owner, RemoveEntityDTO data)
+    public static void Send(Entity owner, RemoveEntityDTO data, Entity entity)
     {
         var buffer = Serialize(data);
-        owner.Reply(ServerPacket.RemoveEntity, buffer, true);
+        owner.Reply(ServerPacket.RemoveEntity, buffer, true, true);
     }
 
 }

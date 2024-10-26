@@ -1,4 +1,27 @@
-﻿public struct BufferDataRef
+﻿/*
+ * QueueBuffer
+ * 
+ * Author: Andre Ferreira
+ * 
+ * Copyright (c) Uzmi Games. Licensed under the MIT License.
+ *    
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+public struct BufferDataRef
 {
     public ServerPacket PacketType;
     public ByteBuffer Data;
@@ -7,12 +30,12 @@
 public class QueueBuffer
 {
     public static Dictionary<string, List<BufferDataRef>> Queues = new Dictionary<string, List<BufferDataRef>>();
-    public static Dictionary<string, Socket> Sockets = new Dictionary<string, Socket>();
+    public static Dictionary<string, Connection> Sockets = new Dictionary<string, Connection>();
     public static int MaxBufferSize = 512 * 1024;
     public static byte EndOfPacketByte = 0xFE;
     public static int EndRepeatByte = 4;
 
-    public static void AddSocket(string id, Socket socket)
+    public static void AddSocket(string id, Connection socket)
     {
         Sockets[id] = socket;
     }
@@ -23,7 +46,7 @@ public class QueueBuffer
             Sockets.Remove(id);
     }
 
-    public static Socket? GetSocket(string id)
+    public static Connection? GetSocket(string id)
     {
         return Sockets.ContainsKey(id) ? Sockets[id] : null;
     }

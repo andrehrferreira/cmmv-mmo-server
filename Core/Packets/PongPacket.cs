@@ -24,7 +24,7 @@ public struct PongPacket
     public static void Send(Entity owner, PongDTO data)
     {
         var buffer = Serialize(data);
-        owner.Socket.Send(ServerPacket.Pong, buffer);
+        owner.Conn.Send(ServerPacket.Pong, buffer, false);
     }
 
 }

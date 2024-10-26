@@ -21,10 +21,10 @@ public struct DissolvePacket
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Send(Entity owner, DissolveDTO data)
+    public static void Send(Entity owner, DissolveDTO data, Entity entity)
     {
         var buffer = Serialize(data);
-        owner.Reply(ServerPacket.Dissolve, buffer, true);
+        owner.Reply(ServerPacket.Dissolve, buffer, true, true);
     }
 
 }

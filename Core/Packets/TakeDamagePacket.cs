@@ -27,10 +27,10 @@ public struct TakeDamagePacket
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Send(Entity owner, TakeDamageDTO data)
+    public static void Send(Entity owner, TakeDamageDTO data, Entity entity)
     {
         var buffer = Serialize(data);
-        owner.Reply(ServerPacket.TakeDamage, buffer, true);
+        owner.Reply(ServerPacket.TakeDamage, buffer, true, true);
     }
 
 }

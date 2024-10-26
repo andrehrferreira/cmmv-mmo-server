@@ -4,7 +4,6 @@
 #include "UObject/Object.h"
 #include "ByteBuffer.h"
 #include "Modules/ModuleManager.h"
-
 #include "Websocket.generated.h"
 
 class IWebSocket;

@@ -40,7 +40,7 @@ public struct AddItemContainerPacket
     public static void Send(Entity owner, AddItemContainerDTO data)
     {
         var buffer = Serialize(data);
-        owner.Socket.Send(ServerPacket.AddItemContainer, buffer);
+        owner.Conn.Send(ServerPacket.AddItemContainer, buffer, true);
     }
 
 }

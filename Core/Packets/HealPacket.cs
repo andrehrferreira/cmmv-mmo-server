@@ -27,10 +27,10 @@ public struct HealPacket
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Send(Entity owner, HealDTO data)
+    public static void Send(Entity owner, HealDTO data, Entity entity)
     {
         var buffer = Serialize(data);
-        owner.Reply(ServerPacket.Heal, buffer, true);
+        owner.Reply(ServerPacket.Heal, buffer, true, true);
     }
 
 }

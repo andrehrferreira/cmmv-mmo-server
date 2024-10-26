@@ -28,7 +28,7 @@ public struct ChangeAmountItemContainerPacket
     public static void Send(Entity owner, ChangeAmountItemContainerDTO data)
     {
         var buffer = Serialize(data);
-        owner.Socket.Send(ServerPacket.ChangeAmountItemContainer, buffer);
+        owner.Conn.Send(ServerPacket.ChangeAmountItemContainer, buffer, true);
     }
 
 }
