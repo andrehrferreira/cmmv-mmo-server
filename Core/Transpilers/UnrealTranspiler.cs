@@ -538,9 +538,10 @@ public class UnrealTraspiler : AbstractTranspiler
     private static string GenerateIncludes()
     {
         var serverPackets = GetServerPackets();
+        var clientPackets = GetClientPackets();
         StringBuilder result = new StringBuilder();
 
-        foreach (var packet in serverPackets)
+        foreach (var packet in serverPackets.Concat(clientPackets))
         {
             result.AppendLine($"#include \"Packets/{packet.Replace("DTO", "")}Packet.h\"");
         }

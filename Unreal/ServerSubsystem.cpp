@@ -32,10 +32,14 @@ UServerSubsystem* UServerSubsystem::GetServerSubsystem(UObject* WorldContextObje
 
 void UServerSubsystem::Init() {
 	Super::Init();
+	UE_LOG(LogTemp, Warning, TEXT("ServerSubsystem Init called."));
+	Start();
 }
 
 void UServerSubsystem::Start()
 {
+	UE_LOG(LogTemp, Warning, TEXT("ServerSubsystem Start called. Connecting to UDP: %s:%d"), *UDPServerHost, UDPServerPort);
+
 	UDPInstance = UUDPFunctionLibrary::CreateSocket(UDPServerHost, UDPServerPort);
 
 	if (UDPInstance)
