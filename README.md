@@ -140,8 +140,8 @@ When running the server in debug mode, the system automatically generates necess
 | C++ Interface for Unreal           | ✅ Working         | Interface creation for Unreal Engine is in progress.        |
 | Testing System                     | ✅ Working         | Automated testing system is functional and operational.     |
 | ByteBuffer and QueueBuffer         | ✅ Working         | High-performance binary communication buffers are working.  |
-| WebSocket                          | ⏳ Not Implemented | WebSocket support has yet to be implemented.                |
-| UDP                                | 🛠 In Progress     | UDP communication setup is yet to be implemented.           |
+| WebSocket                          | ✅ Working         | WebSocket support has yet to be implemented.                |
+| UDP                                | ✅ Working         | UDP communication setup is yet to be implemented.           |
 | XOR Encoding                       | ⏳ Not Implemented | XOR encoding system is yet to be implemented.               |
 | ECC and AES256 Encryption          | ⏳ Not Implemented | Encryption using ECC and AES256 needs to be implemented.    |
 | Base Replication                   | ⏳ Not Implemented | Replication system for core game elements is not implemented yet. |
