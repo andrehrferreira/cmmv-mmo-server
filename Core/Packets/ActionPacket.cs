@@ -8,6 +8,7 @@ public struct ActionPacket
     public static ByteBuffer Serialize(ActionDTO data)
     {
         var buffer = ByteBuffer.CreateEmptyBuffer();
+        buffer.Write((byte)ServerPacket.Action);
         buffer.Write(Base36.ToInt(data.Id));
         buffer.Write(data.Index);
         return buffer;
@@ -28,7 +29,6 @@ public struct ActionPacket
         var buffer = Serialize(data);
         owner.Reply(ServerPacket.Action, buffer, true, true);
     }
-
 }
 
 public partial class Server

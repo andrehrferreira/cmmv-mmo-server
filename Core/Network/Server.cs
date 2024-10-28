@@ -32,13 +32,15 @@
  */
 
 using NanoSockets;
-using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 public unsafe partial class Server
 {
     private static Socket UdpSocketv4;
     private static Dictionary<Address, Connection> Connections = new Dictionary<Address, Connection>();
+    private static Dictionary<byte, object> Handlers = new Dictionary<byte, object>();
     public static Thread SendThread;
     public static Thread ReceiveThread;
     private static volatile bool IsReceiveThreadStop;
@@ -56,6 +58,7 @@ public unsafe partial class Server
 
     //Reliable
     private static ByteBuffer ReliableList;
+    private static Connection DisconnectedList;
     private static Stopwatch ReliableTimer = Stopwatch.StartNew();
     public static int ReliableResendThreshold = 30;
     private static Stopwatch PacketsCounterStopwatch = Stopwatch.StartNew();
@@ -64,11 +67,27 @@ public unsafe partial class Server
     [ThreadStatic]
     static ByteBufferPool LocalSendQueue;
 
-    public static Action<Func<Server, Connection>, Action, string> ConnectionRequestEvent;
+    public static Action<Func<Server, Connection>, Action, string> OnConnection;
 
     static Server()
     {
+        UDP.Initialize();
+    }
 
+    public static void RegisterHandler<T>(byte packetId, NetworkEvents<T> networkEvent)
+    {
+        if (!Handlers.ContainsKey(packetId))        
+            Handlers[packetId] = networkEvent;
+        else        
+            throw new ArgumentException($"Handler for packet ID {packetId} is already registered.");
+    }
+
+    public static NetworkEvents<T> GetHandler<T>(byte packetId)
+    {
+        if (Handlers.TryGetValue(packetId, out var handler))        
+            return handler as NetworkEvents<T>;
+        
+        return null;
     }
 
     public static void Start(int port)
@@ -94,6 +113,8 @@ public unsafe partial class Server
         Console.WriteLine("UDP Started without errors");
 
         SendToBackgroundThread();
+
+        ReceiveOnCurrentThread();
     }
 
     public static void SendToBackgroundThread()
@@ -184,6 +205,67 @@ public unsafe partial class Server
                                     }
                                 }
                             }
+
+                            lock (GlobalSendQueue)
+                            {
+                                buffer = GlobalSendQueue.Clear();
+                            }
+
+                            if (buffer != null)
+                            {
+                                sent = true;
+
+                                do
+                                {
+                                    ByteBuffer next = buffer.Next;
+
+                                    try
+                                    {
+                                        if (buffer.Connection != null)
+                                        {
+                                            if (buffer.Reliable)
+                                            {
+                                                addr = buffer.Connection.RemoteEndPoint;
+
+                                                uint crc32c = CRC32C.Compute(buffer.Data, buffer.Position);
+
+                                                buffer.Put(crc32c);
+
+                                                buffer.Size = buffer.Position;
+
+                                                if (buffer.Data != null && !buffer.IsDestroyed)
+                                                    UDP.Unsafe.Send(udpSocket, &addr, buffer.Data, buffer.Position);
+
+                                                buffer.Next = ReliableList;
+
+                                                ReliableList = buffer;
+                                            }
+                                            else
+                                            {
+                                                addr = buffer.Connection.RemoteEndPoint;
+
+                                                if (buffer.Data != null && !buffer.IsDestroyed)
+                                                    UDP.Unsafe.Send(udpSocket, &addr, buffer.Data, buffer.Position);
+
+                                                ConcurrentByteBufferPool.Release(buffer);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            ConcurrentByteBufferPool.Release(buffer);
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine(ex);
+
+                                        ConcurrentByteBufferPool.Release(buffer);
+                                    }
+
+                                    buffer = next;
+                                }
+                                while (buffer != null);
+                            }
                         }*/
                     }
                     while (sent);
@@ -203,5 +285,117 @@ public unsafe partial class Server
         SendThread.IsBackground = true;
 
         SendThread.Start();
+    }
+
+    public static void ReceiveOnCurrentThread()
+    {
+        IsReceiveThreadStop = false;
+
+        ReceiveThread = Thread.CurrentThread;
+
+        Stopwatch PingTimer = Stopwatch.StartNew();
+
+        Address* removedKeys = stackalloc Address[64];
+
+        try
+        {
+            while (true)
+            {
+                if (IsReceiveThreadStop)
+                {
+                    throw new Exception();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            DisconnectedList = null;
+            Connections.Clear();
+        }
+    }
+
+    static void ProcessGlobalEvents()
+    {
+        Connection disconnectedConn = Interlocked.Exchange(ref DisconnectedList, null);
+
+        while (disconnectedConn != null)
+        {
+            Connection next = disconnectedConn.Next;
+
+            Connections.Remove(disconnectedConn.RemoteEndPoint);
+
+            disconnectedConn = next;
+        }
+    }
+
+    public static unsafe bool Pool(int timeout)
+    {
+        if (UDP.Poll(UdpSocketv4, timeout) > 0)
+        {
+            int count;
+
+            ByteBuffer buffer = ConcurrentByteBufferPool.Acquire();
+
+            try
+            {
+                Address address;
+                byte* Data = (byte*)NativeMemory.Alloc(Connection.Mtu * 3);
+
+                if ((count = UDP.Unsafe.Receive(UdpSocketv4, &address, Data, Connection.Mtu * 3)) > 0)
+                {
+                    TimeSpan packetPerSecondElapsed = PacketsCounterStopwatch.Elapsed;
+
+                    buffer.SetData(Data, count);
+                    buffer.Size = count;
+                    buffer.Position = 0;
+
+                    NetworkPacketType type = (NetworkPacketType)(buffer.ReadByte());
+
+                    Connection conn;
+
+                    switch (type)
+                    {
+                        case NetworkPacketType.ConnectRequest:
+                            if (!Connections.ContainsKey(address))
+                            {
+                                conn = new Connection()
+                                {
+                                    RemoteEndPoint = address,
+                                    State = ConnectionState.Connecting,
+                                    TimeoutLeft = 120f
+                                };
+                            }
+                        break;
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                ConcurrentByteBufferPool.Release(buffer);
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void Send(ByteBuffer buffer)
+    {
+        if (buffer.Reliable)        
+            Interlocked.Exchange(ref buffer.Acked, ReliableResendThreshold);
+        
+        EnqueueSend(buffer);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void EnqueueSend(ByteBuffer buffer)
+    {
+        if (LocalSendQueue == null)        
+            LocalSendQueue = new ByteBufferPool();
+        
+        LocalSendQueue.Add(buffer);
     }
 } 

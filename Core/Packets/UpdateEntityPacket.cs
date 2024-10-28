@@ -8,6 +8,7 @@ public struct UpdateEntityPacket
     public static ByteBuffer Serialize(UpdateEntityDTO data)
     {
         var buffer = ByteBuffer.CreateEmptyBuffer();
+        buffer.Write((byte)ServerPacket.UpdateEntity);
         buffer.Write(Base36.ToInt(data.Id));
         buffer.Write(data.States);
         buffer.Write(data.Buffs);
@@ -21,10 +22,7 @@ public struct UpdateEntityPacket
     {
         var data = new UpdateEntityDTO();
         data.Id = buffer.ReadId();
-        data.States = buffer.ReadInt();
-        data.Buffs = buffer.ReadInt();
         data.Position = buffer.ReadVector3();
-        data.Life = buffer.ReadInt();
         return data;
     }
 
@@ -34,6 +32,9 @@ public struct UpdateEntityPacket
         var buffer = Serialize(data);
         QueueBuffer.AddBuffer(ServerPacket.UpdateEntity, entity.Conn.Id, buffer);
     }
-
 }
 
+public partial class Server
+{
+    public static NetworkEvents<UpdateEntityDTO> OnUpdateEntity = new NetworkEvents<UpdateEntityDTO>();
+}

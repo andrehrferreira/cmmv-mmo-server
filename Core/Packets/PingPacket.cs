@@ -5,14 +5,6 @@ using System.Runtime.CompilerServices;
 public struct PingPacket
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ByteBuffer Serialize(PingDTO data)
-    {
-        var buffer = ByteBuffer.CreateEmptyBuffer();
-        buffer.Write(data.Timestamp);
-        return buffer;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static PingDTO Deserialize(ByteBuffer buffer)
     {
         var data = new PingDTO();

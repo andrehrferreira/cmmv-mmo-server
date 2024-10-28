@@ -8,6 +8,7 @@ public struct AddItemContainerPacket
     public static ByteBuffer Serialize(AddItemContainerDTO data)
     {
         var buffer = ByteBuffer.CreateEmptyBuffer();
+        buffer.Write((byte)ServerPacket.AddItemContainer);
         buffer.Write(data.ContainerId);
         buffer.Write(data.SlotId);
         buffer.Write(data.ItemRef);
@@ -20,21 +21,6 @@ public struct AddItemContainerPacket
         return buffer;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static AddItemContainerDTO Deserialize(ByteBuffer buffer)
-    {
-        var data = new AddItemContainerDTO();
-        data.ContainerId = buffer.ReadString();
-        data.SlotId = buffer.ReadInt();
-        data.ItemRef = buffer.ReadString();
-        data.ItemName = buffer.ReadString();
-        data.Amount = buffer.ReadInt();
-        data.ItemRarity = buffer.ReadByte();
-        data.GoldCost = buffer.ReadInt();
-        data.Weight = buffer.ReadInt();
-        data.ShowHint = buffer.ReadBool();
-        return data;
-    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Send(Entity owner, AddItemContainerDTO data)
@@ -42,6 +28,5 @@ public struct AddItemContainerPacket
         var buffer = Serialize(data);
         owner.Conn.Send(ServerPacket.AddItemContainer, buffer, true);
     }
-
 }
 

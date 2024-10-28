@@ -8,6 +8,7 @@ public struct SyncEventPacket
     public static ByteBuffer Serialize(SyncEventDTO data)
     {
         var buffer = ByteBuffer.CreateEmptyBuffer();
+        buffer.Write((byte)ServerPacket.SyncEvent);
         buffer.Write(Base36.ToInt(data.Id));
         buffer.Write(data.EventId);
         return buffer;
@@ -28,7 +29,6 @@ public struct SyncEventPacket
         var buffer = Serialize(data);
         owner.Reply(ServerPacket.SyncEvent, buffer, true, true);
     }
-
 }
 
 public partial class Server

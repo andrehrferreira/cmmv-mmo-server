@@ -41,21 +41,62 @@ public enum DisconnectReason
     Other
 }
 
+public interface IHeaderWriter
+{
+    void PutUnreliableHeader(ByteBuffer buffer);
+    void ReadUnreliableHeader(ByteBuffer buffer);
+}
+
 public class Connection
 {
     public string Id;
-
     public Entity Entity;
+    public const int Mtu = 1200;
 
     public Address RemoteEndPoint;
     public Server Manager;
     public string Token;
+    public int PacketsPerSecond;
+    public TimeSpan PacketsPerSecondTimeout;
+    public IHeaderWriter HeaderWriter;
+    public ConnectionState State;
+    public Connection Next;
+    public float TimeoutLeft = 120f;
 
     public DisconnectReason Reason;
     public DateTime PingSendAt;
 
+    //Buffer
+    internal ByteBuffer ReliableBuffer;
+    internal ByteBuffer UnreliableBuffer;
+    internal ByteBuffer AckBuffer;
+    internal Dictionary<short, ByteBuffer> ReliablePackets = new Dictionary<short, ByteBuffer>();
+    internal Dictionary<short, ByteBuffer> RemoteReliableOrderBuffer = new Dictionary<short, ByteBuffer>();
+    private short Sequence = 1;
+    public short NextRemoteSequence = 2;
+
+    //Actions
     public Action OnDisconnect;
     public Action<ByteBuffer> OnReceive;
+
+
+    public ByteBuffer BeginReliable()
+    {
+        if (ReliableBuffer == null)
+        {
+            ReliableBuffer = ConcurrentByteBufferPool.Acquire();
+            ReliableBuffer.Connection = this;
+
+            ReliableBuffer.Write((byte)NetworkPacketType.Reliable);
+            ReliableBuffer.Write(Sequence);
+            ReliableBuffer.Write(Manager.TickNumber);
+
+            ReliableBuffer.Sequence = Sequence;
+            ReliableBuffer.Reliable = true;
+        }
+
+        return ReliableBuffer;
+    }
 
     public void Send(ServerPacket packetType, ByteBuffer data, bool encryptData = false)
     {
@@ -64,7 +105,7 @@ public class Connection
 
     public void Send(ServerPacket packetType, byte[] data, bool encryptData = false)
     {
-
+        
     }
 
     public void Send(byte[] data, bool encryptData = false)

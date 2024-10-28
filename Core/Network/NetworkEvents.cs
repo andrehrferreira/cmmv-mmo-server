@@ -36,6 +36,11 @@ public class NetworkEvents<T>
 {
     private List<Action<T, Connection>> _subscribers = new List<Action<T, Connection>>();
 
+    public void NetworkEvent<T>()
+    {
+        //Server.RegisterHandler<T>((byte)ServerPacket.UpdateEntity, Server.OnUpdateEntity);
+    }
+
     public IDisposable Subscribe(Action<T, Connection> subscriber)
     {
         _subscribers.Add(subscriber);

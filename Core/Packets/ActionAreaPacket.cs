@@ -8,6 +8,7 @@ public struct ActionAreaPacket
     public static ByteBuffer Serialize(ActionAreaDTO data)
     {
         var buffer = ByteBuffer.CreateEmptyBuffer();
+        buffer.Write((byte)ServerPacket.ActionArea);
         buffer.Write(Base36.ToInt(data.Id));
         buffer.Write(data.Index);
         buffer.Write(data.Position);
@@ -30,7 +31,6 @@ public struct ActionAreaPacket
         var buffer = Serialize(data);
         owner.Reply(ServerPacket.ActionArea, buffer, true, true);
     }
-
 }
 
 public partial class Server

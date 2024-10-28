@@ -14,7 +14,6 @@
 	<Compile Remove="Shared\**\*.cs" />
 	<Folder Include="Unreal\Enums\" />
 	<Folder Include="Unreal\Flags\" />
-	<Folder Include="Unreal\Steam\" />
   </ItemGroup>
 
   <ItemGroup>

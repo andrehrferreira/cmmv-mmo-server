@@ -53,7 +53,7 @@ public class ListNode<T>
 /// <typeparam name="T">The type of elements stored in the list.</typeparam>
 public class LinkedList<T>
 {
-    private ListNode<T> head = null;
+    private ListNode<T> Head = null;
 
     /// <summary>
     /// Appends a new element to the end of the linked list.
@@ -63,13 +63,13 @@ public class LinkedList<T>
     {
         var newNode = new ListNode<T>(data);
 
-        if (head == null)
+        if (Head == null)
         {
-            head = newNode;
+            Head = newNode;
         }
         else
         {
-            var current = head;
+            var current = Head;
 
             while (current.Next != null)
                 current = current.Next;
@@ -85,8 +85,8 @@ public class LinkedList<T>
     public void Prepend(T data)
     {
         var newNode = new ListNode<T>(data);
-        newNode.Next = head;
-        head = newNode;
+        newNode.Next = Head;
+        Head = newNode;
     }
 
     /// <summary>
@@ -95,16 +95,16 @@ public class LinkedList<T>
     /// <param name="data">The data to remove from the list.</param>
     public void Remove(T data)
     {
-        if (head == null)
+        if (Head == null)
             return;
 
-        if (head.Data.Equals(data))
+        if (Head.Data.Equals(data))
         {
-            head = head.Next;
+            Head = Head.Next;
             return;
         }
 
-        var current = head;
+        var current = Head;
 
         while (current.Next != null && !current.Next.Data.Equals(data))
             current = current.Next;
@@ -119,6 +119,6 @@ public class LinkedList<T>
     /// <returns>The head <see cref="ListNode{T}"/> of the list, or <c>null</c> if the list is empty.</returns>
     public ListNode<T> GetHead()
     {
-        return head;
+        return Head;
     }
 }

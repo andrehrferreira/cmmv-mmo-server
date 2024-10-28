@@ -21,7 +21,6 @@
  * SOFTWARE.
  */
 
-using System;
 using System.Reflection;
 using System.Text;
 
@@ -113,7 +112,7 @@ public class UnrealTraspiler : AbstractTranspiler
             writer.WriteLine($"#include \"{contractName}Packet.generated.h\"");
             writer.WriteLine();
             writer.WriteLine("USTRUCT(BlueprintType)");
-            writer.WriteLine($"struct F{contractName}");
+            writer.WriteLine($"struct F{contractName}Recive");
             writer.WriteLine("{");
             writer.WriteLine("    GENERATED_USTRUCT_BODY();");
             writer.WriteLine();
@@ -121,7 +120,7 @@ public class UnrealTraspiler : AbstractTranspiler
             foreach (var field in fields)
             {
                 var attributeField = field.GetCustomAttribute<ContractFieldAttribute>();
-                if (attributeField != null)
+                if (attributeField != null && (attributeField.ReplyType == FieldReplyType.ServerOnly || attributeField.ReplyType == FieldReplyType.Mutiplex))
                 {
                     var fieldType = ConvertToUnrealType(attributeField.Type);
                     writer.WriteLine($"    UPROPERTY(EditAnywhere, BlueprintReadWrite)");
@@ -131,6 +130,27 @@ public class UnrealTraspiler : AbstractTranspiler
             }
 
             writer.WriteLine("};");
+
+            writer.WriteLine();
+            writer.WriteLine("USTRUCT(BlueprintType)");
+            writer.WriteLine($"struct F{contractName}Send");
+            writer.WriteLine("{");
+            writer.WriteLine("    GENERATED_USTRUCT_BODY();");
+            writer.WriteLine();
+
+            foreach (var field in fields)
+            {
+                var attributeField = field.GetCustomAttribute<ContractFieldAttribute>();
+                if (attributeField != null && (attributeField.ReplyType == FieldReplyType.ClientOnly || attributeField.ReplyType == FieldReplyType.Mutiplex))
+                {
+                    var fieldType = ConvertToUnrealType(attributeField.Type);
+                    writer.WriteLine($"    UPROPERTY(EditAnywhere, BlueprintReadWrite)");
+                    writer.WriteLine($"    {fieldType} {field.Name};");
+                    writer.WriteLine();
+                }
+            }
+            writer.WriteLine("};");
+
             writer.WriteLine();
             writer.WriteLine("// Function class to serialize and deserialize struct F" + contractName);
             writer.WriteLine("UCLASS()");
@@ -141,10 +161,10 @@ public class UnrealTraspiler : AbstractTranspiler
             writer.WriteLine("public:");
             writer.WriteLine();
             writer.WriteLine($"    UFUNCTION(BlueprintCallable, Category = \"{contractName}Serialization\")");
-            writer.WriteLine($"    static F{contractName} {contractName}Deserialize(UByteBuffer* Buffer);");
+            writer.WriteLine($"    static F{contractName}Recive {contractName}Deserialize(UByteBuffer* Buffer);");
             writer.WriteLine();
             writer.WriteLine($"    UFUNCTION(BlueprintCallable, Category = \"{contractName}Serialization\")");
-            writer.WriteLine($"    static UByteBuffer* {contractName}Serialize(const F{contractName}& Data);");
+            writer.WriteLine($"    static UByteBuffer* {contractName}Serialize(const F{contractName}Send& Data);");
 
             /*var attribute = contract.GetCustomAttribute<ContractAttribute>();
             if (attribute.Type == PacketType.Client || attribute.Type == PacketType.Multiplex)
@@ -171,14 +191,14 @@ public class UnrealTraspiler : AbstractTranspiler
             writer.WriteLine();
             writer.WriteLine($"F{contractName} U{contractName}Library::{contractName}Deserialize(UByteBuffer* Buffer)");
             writer.WriteLine("{");
-            writer.WriteLine($"    F{contractName} Data = F{contractName}();");
+            writer.WriteLine($"    F{contractName}Recive Data = F{contractName}Recive();");
             writer.WriteLine("    if (!Buffer) return Data;");
             writer.WriteLine();
 
             foreach (var field in fields)
             {
                 var attributeField = field.GetCustomAttribute<ContractFieldAttribute>();
-                if (attributeField != null)
+                if (attributeField != null && (attributeField.ReplyType == FieldReplyType.ServerOnly || attributeField.ReplyType == FieldReplyType.Mutiplex))
                 {
                     var fieldType = attributeField.Type;
                     var fieldName = field.Name;
@@ -222,7 +242,7 @@ public class UnrealTraspiler : AbstractTranspiler
             writer.WriteLine("    return Data;");
             writer.WriteLine("}");
             writer.WriteLine();
-            writer.WriteLine($"UByteBuffer* U{contractName}Library::{contractName}Serialize(const F{contractName}& Data)");
+            writer.WriteLine($"UByteBuffer* U{contractName}Library::{contractName}Serialize(const F{contractName}Send& Data)");
             writer.WriteLine("{");
             writer.WriteLine("    UByteBuffer* Buffer = UByteBuffer::CreateEmptyByteBuffer();");
             writer.WriteLine("    if (!Buffer) return nullptr;");
@@ -231,7 +251,7 @@ public class UnrealTraspiler : AbstractTranspiler
             foreach (var field in fields)
             {
                 var attributeField = field.GetCustomAttribute<ContractFieldAttribute>();
-                if (attributeField != null)
+                if (attributeField != null && (attributeField.ReplyType == FieldReplyType.ClientOnly || attributeField.ReplyType == FieldReplyType.Mutiplex))
                 {
                     var fieldType = attributeField.Type;
                     var fieldName = field.Name;
@@ -534,7 +554,6 @@ public class UnrealTraspiler : AbstractTranspiler
         return result.ToString();
     }
 
-
     private static string GenerateIncludes()
     {
         var serverPackets = GetServerPackets();
@@ -678,5 +697,4 @@ public class UnrealTraspiler : AbstractTranspiler
 
         return switchBuilder.ToString();
     }
-
 }

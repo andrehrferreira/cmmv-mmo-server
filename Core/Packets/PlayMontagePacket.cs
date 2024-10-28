@@ -8,6 +8,7 @@ public struct PlayMontagePacket
     public static ByteBuffer Serialize(PlayMontageDTO data)
     {
         var buffer = ByteBuffer.CreateEmptyBuffer();
+        buffer.Write((byte)ServerPacket.PlayMontage);
         buffer.Write(Base36.ToInt(data.Id));
         buffer.Write(data.Index);
         return buffer;
@@ -28,7 +29,6 @@ public struct PlayMontagePacket
         var buffer = Serialize(data);
         owner.Reply(ServerPacket.PlayMontage, buffer, true, true);
     }
-
 }
 
 public partial class Server

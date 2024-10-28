@@ -8,6 +8,7 @@ public struct HealPacket
     public static ByteBuffer Serialize(HealDTO data)
     {
         var buffer = ByteBuffer.CreateEmptyBuffer();
+        buffer.Write((byte)ServerPacket.Heal);
         buffer.Write(Base36.ToInt(data.Id));
         buffer.Write(data.Type);
         buffer.Write(data.Value);
@@ -15,16 +16,6 @@ public struct HealPacket
         return buffer;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static HealDTO Deserialize(ByteBuffer buffer)
-    {
-        var data = new HealDTO();
-        data.Id = buffer.ReadId();
-        data.Type = buffer.ReadByte();
-        data.Value = buffer.ReadInt();
-        data.CasterId = buffer.ReadId();
-        return data;
-    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Send(Entity owner, HealDTO data, Entity entity)
@@ -32,6 +23,5 @@ public struct HealPacket
         var buffer = Serialize(data);
         owner.Reply(ServerPacket.Heal, buffer, true, true);
     }
-
 }
 

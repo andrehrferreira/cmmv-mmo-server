@@ -1,7 +1,7 @@
 ﻿using System.Reactive.Subjects;
 using System.ComponentModel;
 
-public partial class Entity 
+public partial class Entity: IEquatable<Entity>, IComparable<Entity>
 {
     public static Dictionary<string, Func<object>> Entities = new Dictionary<string, Func<object>>();
     public static Dictionary<string, Func<Player, object>> Summons = new Dictionary<string, Func<Player, object>>();
@@ -143,18 +143,39 @@ public partial class Entity
     public Subject<Entity> OnDestroy { get; } = new Subject<Entity>();
     public Subject<Condition> OnConditionChanged { get; } = new Subject<Condition>();
 
+    public bool Equals(Entity other)
+    {
+        return Id == other.Id || (MapIndex == other.MapIndex && Map.Equals(other.Map));
+    }
+
+    public int CompareTo(Entity other)
+    {
+        return Id.CompareTo(other.Id);
+    }
+
+    public static bool operator ==(Entity left, Entity right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(Entity left, Entity right)
+    {
+        return !left.Equals(right);
+    }
+
     //Network
     public void Reply(ServerPacket packetType, ByteBuffer data, bool Queue = false, bool encryptData = false)
     {
-        AreaOfInterest.ForEach((entity) =>
-        {
-            if(entity.Conn != null)
+        var entities = new HashSet<Entity>(AreaOfInterest) { this };
+
+        foreach (var entity in entities) { 
+            if (entity.Conn != null)
             {
                 if (Queue)
                     QueueBuffer.AddBuffer(packetType, entity.Conn.Id, data);
                 else
                     entity.Conn.Send(packetType, data.GetBuffer(), encryptData);
             }
-        });
+        };
     }
 }

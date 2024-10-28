@@ -67,10 +67,13 @@ public class ContractTraspiler: AbstractTranspiler
                 writer.WriteLine("using System.Runtime.CompilerServices;");
                 writer.WriteLine();
                 writer.WriteLine($"public struct {contractName.Replace("DTO", "")}Packet");
-                writer.WriteLine("{");                
+                writer.WriteLine("{");
 
-                GenerateWriteMethod(writer, contract, fields);
-                GenerateReadMethod(writer, contract, fields);
+                if (attribute.Type == PacketType.Server || attribute.Type == PacketType.Multiplex)
+                    GenerateWriteMethod(writer, contract, fields);
+
+                if (attribute.Type == PacketType.Client || attribute.Type == PacketType.Multiplex)
+                    GenerateReadMethod(writer, contract, fields);
 
                 if(attribute.Type == PacketType.Server || attribute.Type == PacketType.Multiplex)
                     GenerateSendFunction(writer, contract, fields, attribute);
@@ -131,11 +134,12 @@ public class ContractTraspiler: AbstractTranspiler
         writer.WriteLine($"    public static ByteBuffer Serialize({contract.Name} data)");
         writer.WriteLine("    {");
         writer.WriteLine("        var buffer = ByteBuffer.CreateEmptyBuffer();");
+        writer.WriteLine($"        buffer.Write((byte)ServerPacket.{contract.Name.Replace("DTO", "")});");
 
         foreach (var field in fields)
         {
             var attribute = field.GetCustomAttribute<ContractFieldAttribute>();
-            if (attribute != null)
+            if (attribute != null && (attribute.ReplyType == FieldReplyType.ServerOnly || attribute.ReplyType == FieldReplyType.Mutiplex))
             {
                 var fieldType = attribute.Type;
                 var fieldName = field.Name;
@@ -182,7 +186,7 @@ public class ContractTraspiler: AbstractTranspiler
         foreach (var field in fields)
         {
             var attribute = field.GetCustomAttribute<ContractFieldAttribute>();
-            if (attribute != null)
+            if (attribute != null && (attribute.ReplyType == FieldReplyType.ClientOnly || attribute.ReplyType == FieldReplyType.Mutiplex))
             {
                 var fieldType = attribute.Type;
                 var fieldName = field.Name;
@@ -238,6 +242,8 @@ public class ContractTraspiler: AbstractTranspiler
             GenerateAreaOfInterestReply(writer, contract, attribute);
 
         writer.WriteLine("}");
+        //writer.WriteLine();
+        //writer.WriteLine($"Server.RegisterHandler<{contract.Name}>((byte)ServerPacket.{contract.Name.Replace("DTO", "")}, Server.On{contract.Name.Replace("DTO", "")});");
     }
 
     private static void GenerateAreaOfInterestReply(StreamWriter writer, Type contract, ContractAttribute attribute)
@@ -292,7 +298,5 @@ public class ContractTraspiler: AbstractTranspiler
         }
 
         writer.WriteLine("    }");
-        writer.WriteLine();
     }
-
 }

@@ -31,11 +31,19 @@ public class ByteBuffer : IDisposable
 
     private byte[] Buffer;
     public int Position;
+    public int Size;
     private bool Disposed = false;
 
     public volatile bool IsDestroyed;
 
+    public Connection Connection;
     public ByteBuffer Next;
+
+    //Realiable
+    public volatile int Acked;
+    public volatile bool Reliable;
+    public short Sequence;
+    public uint TickNumber;
 
     public ByteBuffer(int initialSize = 0)
     {
@@ -88,6 +96,20 @@ public class ByteBuffer : IDisposable
 
         Buffer[0] = type;
         Position++;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public unsafe void SetData(byte* data, int length)
+    {
+        if (data == null)
+            throw new ArgumentNullException(nameof(data));
+
+        EnsureCapacity(length);
+
+        for (int i = 0; i < length; i++)        
+            Buffer[Position + i] = *(data + i);
+        
+        Position += length;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

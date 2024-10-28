@@ -8,6 +8,7 @@ public struct SelectTargetPacket
     public static ByteBuffer Serialize(SelectTargetDTO data)
     {
         var buffer = ByteBuffer.CreateEmptyBuffer();
+        buffer.Write((byte)ServerPacket.SelectTarget);
         buffer.Write(Base36.ToInt(data.Id));
         buffer.Write(Base36.ToInt(data.Target));
         return buffer;
@@ -28,7 +29,6 @@ public struct SelectTargetPacket
         var buffer = Serialize(data);
         owner.Reply(ServerPacket.SelectTarget, buffer, true, true);
     }
-
 }
 
 public partial class Server

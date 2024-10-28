@@ -8,6 +8,7 @@ public struct CancelTargetPacket
     public static ByteBuffer Serialize(CancelTargetDTO data)
     {
         var buffer = ByteBuffer.CreateEmptyBuffer();
+        buffer.Write((byte)ServerPacket.CancelTarget);
         buffer.Write(Base36.ToInt(data.Id));
         return buffer;
     }
@@ -26,7 +27,6 @@ public struct CancelTargetPacket
         var buffer = Serialize(data);
         owner.Reply(ServerPacket.CancelTarget, buffer, true, true);
     }
-
 }
 
 public partial class Server

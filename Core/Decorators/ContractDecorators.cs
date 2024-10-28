@@ -29,8 +29,13 @@ public class ContractFieldAttribute : Attribute
 {
     public string Type { get; }
 
-    public ContractFieldAttribute(string type)
+    public FieldReplyType ReplyType { get; }
+
+    public ContractFieldAttribute(
+        string type, FieldReplyType replyType = FieldReplyType.Mutiplex
+    )
     {
         Type = type;
+        ReplyType = replyType;
     }
 }

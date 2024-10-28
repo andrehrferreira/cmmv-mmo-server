@@ -8,17 +8,11 @@ public struct PongPacket
     public static ByteBuffer Serialize(PongDTO data)
     {
         var buffer = ByteBuffer.CreateEmptyBuffer();
+        buffer.Write((byte)ServerPacket.Pong);
         buffer.Write(data.Timestamp);
         return buffer;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PongDTO Deserialize(ByteBuffer buffer)
-    {
-        var data = new PongDTO();
-        data.Timestamp = buffer.ReadInt();
-        return data;
-    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Send(Entity owner, PongDTO data)
@@ -26,6 +20,5 @@ public struct PongPacket
         var buffer = Serialize(data);
         owner.Conn.Send(ServerPacket.Pong, buffer, false);
     }
-
 }
 

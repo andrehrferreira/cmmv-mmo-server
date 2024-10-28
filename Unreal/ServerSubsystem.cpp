@@ -87,6 +87,8 @@ void UServerSubsystem::HandleReceivedData(UByteBuffer* ReceivedBuffer)
 {
 	if (ReceivedBuffer)
 	{
+		uint8 PacketType = ReceivedBuffer->GetByte();
+
 		uint8 PacketId = ReceivedBuffer->GetByte();
 		EServerPacket PacketType = static_cast<EServerPacket>(PacketId);
 

@@ -8,17 +8,11 @@ public struct DissolvePacket
     public static ByteBuffer Serialize(DissolveDTO data)
     {
         var buffer = ByteBuffer.CreateEmptyBuffer();
+        buffer.Write((byte)ServerPacket.Dissolve);
         buffer.Write(Base36.ToInt(data.Id));
         return buffer;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static DissolveDTO Deserialize(ByteBuffer buffer)
-    {
-        var data = new DissolveDTO();
-        data.Id = buffer.ReadId();
-        return data;
-    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Send(Entity owner, DissolveDTO data, Entity entity)
@@ -26,6 +20,5 @@ public struct DissolvePacket
         var buffer = Serialize(data);
         owner.Reply(ServerPacket.Dissolve, buffer, true, true);
     }
-
 }
 

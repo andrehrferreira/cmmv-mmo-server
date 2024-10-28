@@ -1,6 +1,4 @@
-﻿
-
-[Contract("CreateEntity", PacketType.Server, PacketAction.None, true, PacketSendType.ToEntity, true)]
+﻿[Contract("CreateEntity", PacketType.Server, PacketAction.None, true, PacketSendType.ToEntity, true)]
 public struct CreateEntityDTO
 {
     [ContractField("id")]
@@ -34,22 +32,22 @@ public struct CreateEntityDTO
     public string Guild;
 }
 
-[Contract("UpdateEntity", PacketType.Server, PacketAction.None, true, PacketSendType.ToEntity, true)]
+[Contract("UpdateEntity", PacketType.Multiplex, PacketAction.None, true, PacketSendType.ToEntity, true)]
 public struct UpdateEntityDTO
 {
     [ContractField("id")]
     public string Id;
 
-    [ContractField("int")]
+    [ContractField("int", FieldReplyType.ServerOnly)]
     public int States;
 
-    [ContractField("int")]
+    [ContractField("int", FieldReplyType.ServerOnly)]
     public int Buffs;
 
     [ContractField("vector3")]
     public Vector3 Position;
 
-    [ContractField("int")]
+    [ContractField("int", FieldReplyType.ServerOnly)]
     public int Life;
 }
 

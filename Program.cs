@@ -11,7 +11,7 @@ class Program
     {
         try
         {
-            int port = int.Parse(args.Length > 1 ? args[1] : "8080");
+            int port = int.Parse(args.Length > 1 ? args[1] : "3020");
 
             string projectDirectory = GetProjectDirectory();
             string envFile = Path.Combine(projectDirectory, ".env");
@@ -50,23 +50,28 @@ class Program
 #if DEBUG
             //System tests
             var testRunner = new TestUtils();
-                var testPassed = testRunner.RunAllTests();
+            var testPassed = testRunner.RunAllTests();
 
-                if (testPassed)
-                {
-                    //Generate
-                    ContractTraspiler.Generate();
-                    UnrealTraspiler.Generate(clientProjectName);
-                    UnrealUtils.RegenerateVSCodes(clientPath, unrealEditorPath, clientProjectName);
-                }
-                else
-                {
-                    Console.WriteLine();
-                    Console.WriteLine("As the application did not pass the tests, the contract files and files for Unreal were not generated..");
-                }
-            #else
-                Console.WriteLine("Running in release mode. Tests and transpilers are skipped.");
-            #endif
+            if (testPassed)
+            {
+                //Generate
+                ContractTraspiler.Generate();
+                UnrealTraspiler.Generate(clientProjectName);
+                //UnrealUtils.RegenerateVSCodes(clientPath, unrealEditorPath, clientProjectName);
+            }
+            else
+            {
+                Console.WriteLine();
+                Console.WriteLine("As the application did not pass the tests, the contract files and files for Unreal were not generated..");
+            }
+#else
+            Console.WriteLine("Running in release mode. Tests and transpilers are skipped.");
+#endif
+            Server.ReliableTimeout = TimeSpan.FromMilliseconds(150);
+
+            Console.WriteLine("Server is running");
+
+            Server.Start(port);
         }
         catch (Exception ex)
         {

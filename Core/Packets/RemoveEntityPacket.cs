@@ -8,17 +8,11 @@ public struct RemoveEntityPacket
     public static ByteBuffer Serialize(RemoveEntityDTO data)
     {
         var buffer = ByteBuffer.CreateEmptyBuffer();
+        buffer.Write((byte)ServerPacket.RemoveEntity);
         buffer.Write(Base36.ToInt(data.Id));
         return buffer;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RemoveEntityDTO Deserialize(ByteBuffer buffer)
-    {
-        var data = new RemoveEntityDTO();
-        data.Id = buffer.ReadId();
-        return data;
-    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Send(Entity owner, RemoveEntityDTO data, Entity entity)
@@ -26,6 +20,5 @@ public struct RemoveEntityPacket
         var buffer = Serialize(data);
         owner.Reply(ServerPacket.RemoveEntity, buffer, true, true);
     }
-
 }
 

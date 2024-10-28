@@ -72,8 +72,8 @@ public class TestUtils
 
         if (totalError == 0)
         {
-            //Console.ForegroundColor = ConsoleColor.Green;
-            //Console.WriteLine($"[PASS] All tests executed successfully.");
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"[PASS] All tests executed successfully.");
         }
         else
         {
@@ -87,6 +87,7 @@ public class TestUtils
         Console.WriteLine($"      Tests  {totalTests} passed ({totalPass})");
         Console.WriteLine($"   Start at  {startTime:HH:mm:ss}");
         Console.WriteLine($"   Duration  {duration.TotalSeconds:F2}s (transform 1.60s, setup 0ms, collect 92.77s, tests {duration.TotalMilliseconds:F2}ms, environment 4ms, prepare 5.89s)");
+        Console.WriteLine();
         Console.ResetColor();
 
         return totalError == 0;

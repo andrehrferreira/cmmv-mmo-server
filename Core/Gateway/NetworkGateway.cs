@@ -2,13 +2,13 @@
 class NetworkGateway
 {
     [Subscribe(ClientPacket.Ping)]
-    public static void OnPingHandler(PingDTO data, Connection conn)
+    public static void OnPingHandler(Connection conn, PingDTO data)
     {
-        var pongData = PongPacket.Serialize(new PongDTO
+        /*var pongData = PongPacket.Serialize(new PongDTO
         {
             Timestamp = data.Timestamp
         });
 
-        conn.Send(ServerPacket.Pong, pongData);
+        conn.Send(ServerPacket.Pong, pongData);*/
     }
 }
